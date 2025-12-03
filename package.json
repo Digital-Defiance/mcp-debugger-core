@@ -33,7 +33,8 @@
     "test:security": "bash scripts/build-test-fixtures.sh && jest --testPathPattern='(auth|security|rate-limit|mask)' --coverage --maxWorkers=1 --forceExit",
     "test:watch": "jest --watch",
     "test:debug": "node --inspect-brk node_modules/.bin/jest --runInBand",
-    "build:fixtures": "bash scripts/build-test-fixtures.sh"
+    "build:fixtures": "bash scripts/build-test-fixtures.sh",
+    "publish:public": "npm publish --access public"
   },
   "keywords": [
     "debugging",
