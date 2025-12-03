@@ -3,6 +3,7 @@
 Enterprise-grade debugging engine for Node.js and TypeScript applications. Provides comprehensive debugging capabilities including Inspector Protocol integration, breakpoint management, variable inspection, execution control, CPU/memory profiling, hang detection, and source map support.
 
 [![npm version](https://img.shields.io/npm/v/@ai-capabilities-suite/mcp-debugger-core)](https://www.npmjs.com/package/@ai-capabilities-suite/mcp-debugger-core)
+[![GitHub Release](https://img.shields.io/github/v/release/digital-defiance/mcp-debugger-core?label=Release&logo=github)](https://github.com/digital-defiance/mcp-debugger-core/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## 🔗 Repository
