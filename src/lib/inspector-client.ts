@@ -186,11 +186,31 @@ export class InspectorClient extends EventEmitter {
    * Disconnect from the Inspector Protocol
    */
   async disconnect(): Promise<void> {
-    if (this.ws) {
-      this.ws.close();
+    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+      return new Promise<void>((resolve) => {
+        const timeout = setTimeout(() => {
+          // Force close if not closed within timeout
+          if (this.ws) {
+            this.ws.terminate();
+            this.ws = null;
+          }
+          this.cleanup();
+          resolve();
+        }, 1000);
+
+        this.ws!.once('close', () => {
+          clearTimeout(timeout);
+          this.ws = null;
+          this.cleanup();
+          resolve();
+        });
+
+        this.ws!.close();
+      });
+    } else {
       this.ws = null;
+      this.cleanup();
     }
-    this.cleanup();
   }
 
   /**

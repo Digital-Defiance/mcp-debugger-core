@@ -1,17 +1,17 @@
 {
   "name": "@ai-capabilities-suite/mcp-debugger-core",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Core debugging engine for Node.js and TypeScript applications. Provides Inspector Protocol integration, breakpoint management, variable inspection, execution control, profiling, hang detection, and source map support.",
-  "main": "./dist/src/index.js",
-  "module": "./dist/src/index.js",
-  "types": "./dist/src/index.d.ts",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     "./package.json": "./package.json",
     ".": {
       "@ts-mcp/source": "./src/index.ts",
-      "types": "./dist/src/index.d.ts",
-      "import": "./dist/src/index.js",
-      "default": "./dist/src/index.js"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
     }
   },
   "files": [
@@ -23,15 +23,16 @@
     "!**/*.test.js"
   ],
   "scripts": {
+    "build": "npx tsc -p tsconfig.lib.json",
     "pretest": "bash scripts/build-test-fixtures.sh",
-    "test": "jest --maxWorkers=1 --forceExit",
+    "test": "npx jest --maxWorkers=1 --forceExit",
     "test:coverage": "bash scripts/build-test-fixtures.sh && jest --coverage --maxWorkers=1 --forceExit",
     "test:coverage:batched": "bash scripts/run-tests-batched.sh",
     "test:unit": "bash scripts/build-test-fixtures.sh && jest --testPathPattern='(session|breakpoint|inspector|spawner)' --coverage --maxWorkers=1 --forceExit",
     "test:profiling": "bash scripts/build-test-fixtures.sh && jest --testPathPattern='(profiler|metrics|performance)' --coverage --maxWorkers=1 --forceExit",
     "test:integration": "bash scripts/build-test-fixtures.sh && jest --testPathPattern='integration' --coverage --maxWorkers=1 --forceExit",
     "test:security": "bash scripts/build-test-fixtures.sh && jest --testPathPattern='(auth|security|rate-limit|mask)' --coverage --maxWorkers=1 --forceExit",
-    "test:watch": "jest --watch",
+    "test:watch": "npx jest --watch",
     "test:debug": "node --inspect-brk node_modules/.bin/jest --runInBand",
     "build:fixtures": "bash scripts/build-test-fixtures.sh",
     "publish:public": "npm publish --access public"
@@ -108,10 +109,15 @@
   },
   "devDependencies": {
     "@swc/core": "^1.15.3",
+    "@swc/helpers": "^0.5.15",
     "@swc/jest": "^0.2.39",
+    "@types/jest": "^29.5.14",
+    "@types/node": "^18.19.68",
     "@types/source-map": "^0.5.7",
     "@types/ws": "^8.18.1",
     "fast-check": "^4.3.0",
-    "mock-socket": "^9.3.1"
+    "jest": "^29.7.0",
+    "mock-socket": "^9.3.1",
+    "typescript": "^5.3.3"
   }
 }

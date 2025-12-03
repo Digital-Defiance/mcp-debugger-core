@@ -135,11 +135,16 @@ export class SessionManager {
    * Cleanup all sessions
    */
   async cleanupAll(): Promise<void> {
-    const cleanupPromises = Array.from(this.sessions.values()).map((session) =>
-      session.cleanup(),
-    );
+    const cleanupPromises = Array.from(this.sessions.values()).map(async (session) => {
+      try {
+        await session.cleanup();
+      } catch (error) {
+        // Log error but continue with other cleanups
+        console.warn('Error during session cleanup:', error);
+      }
+    });
 
-    await Promise.all(cleanupPromises);
+    await Promise.allSettled(cleanupPromises);
     this.sessions.clear();
   }
 

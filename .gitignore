@@ -1,0 +1,7 @@
+dist/
+# Prevent compiled files in src directory
+src/**/*.js
+src/**/*.js.map
+src/**/*.d.ts
+!src/**/*.spec.js
+!src/**/*.test.js

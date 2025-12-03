@@ -398,6 +398,13 @@ export class DebugSession {
    * Clean up session resources
    */
   async cleanup(): Promise<void> {
+    // Prevent multiple cleanup calls
+    if (this.state === SessionState.TERMINATED) {
+      return;
+    }
+
+    this.state = SessionState.TERMINATED;
+
     // Remove all breakpoints
     if (
       this.cdpBreakpointOps &&
@@ -417,24 +424,58 @@ export class DebugSession {
       }
     }
 
-    // Disconnect inspector
+    // Disconnect inspector first
     if (this.inspector) {
-      await this.inspector.disconnect();
+      try {
+        await this.inspector.disconnect();
+      } catch (error) {
+        // Ignore errors during cleanup
+      }
       this.inspector = null;
     }
 
     // Kill process if still running
-    if (this.process && !this.process.killed) {
-      this.process.kill();
+    if (this.process && !this.process.killed && this.process.exitCode === null) {
+      try {
+        // Try graceful termination first
+        this.process.kill('SIGTERM');
+        
+        // Wait a bit for graceful shutdown
+        await new Promise<void>((resolve) => {
+          const timeout = setTimeout(() => {
+            // Force kill if still running
+            if (this.process && !this.process.killed && this.process.exitCode === null) {
+              this.process.kill('SIGKILL');
+            }
+            resolve();
+          }, 1000);
+          
+          if (this.process) {
+            this.process.once('exit', () => {
+              clearTimeout(timeout);
+              resolve();
+            });
+          } else {
+            clearTimeout(timeout);
+            resolve();
+          }
+        });
+      } catch (error) {
+        // Ignore errors during cleanup
+      }
     }
 
     this.process = null;
-    this.state = SessionState.TERMINATED;
     this.cdpBreakpointOps = null;
+    this.variableInspector = null;
+    this.cpuProfiler = null;
+    this.memoryProfiler = null;
+    this.performanceTimeline = null;
     this.breakpointManager.clearAll();
     this.watchedVariables.clear();
     this.watchedVariableChanges.clear();
     this.exceptionBreakpoints.clear();
+    this.crashHandlers = [];
 
     // Clear source map cache
     this.sourceMapManager.clearCache();
