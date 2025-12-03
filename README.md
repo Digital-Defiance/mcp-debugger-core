@@ -9,7 +9,7 @@ Enterprise-grade debugging engine for Node.js and TypeScript applications. Provi
 
 This package is now maintained in its own repository: **[https://github.com/Digital-Defiance/mcp-debugger-core](https://github.com/Digital-Defiance/mcp-debugger-core)**
 
-This repository is part of the [https://github.com/Digital-Defiance/ai-capabilitites-suite](AI Capabilitites Suite) on GitHub.
+This repository is part of the [AI Capabilitites Suite](https://github.com/Digital-Defiance/ai-capabilitites-suite) on GitHub.
 
 ## Features
 
