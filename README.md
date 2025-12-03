@@ -5,6 +5,12 @@ Enterprise-grade debugging engine for Node.js and TypeScript applications. Provi
 [![npm version](https://img.shields.io/npm/v/@ai-capabilities-suite/mcp-debugger-core)](https://www.npmjs.com/package/@ai-capabilities-suite/mcp-debugger-core)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
+## 🔗 Repository
+
+This package is now maintained in its own repository: **[https://github.com/Digital-Defiance/mcp-debugger-core](https://github.com/Digital-Defiance/mcp-debugger-core)**
+
+This repository is part of the [https://github.com/Digital-Defiance/ai-capabilitites-suite](AI Capabilitites Suite) on GitHub.
+
 ## Features
 
 ### Core Debugging
