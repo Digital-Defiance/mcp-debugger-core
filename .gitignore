@@ -1,4 +1,5 @@
 dist/
+node_modules/
 # Prevent compiled files in src directory
 src/**/*.js
 src/**/*.js.map
