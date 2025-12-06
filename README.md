@@ -1,6 +1,6 @@
 # MCP Debugger Core
 
-Enterprise-grade debugging engine for Node.js and TypeScript applications. Provides comprehensive debugging capabilities including Inspector Protocol integration, breakpoint management, variable inspection, execution control, CPU/memory profiling, hang detection, and source map support.
+Node.js/JavaScript debugging engine using Chrome DevTools Protocol. Provides comprehensive debugging capabilities including Inspector Protocol integration, breakpoint management, variable inspection, execution control, CPU/memory profiling, hang detection, and source map support. For multi-language debugging, use the VS Code extension which leverages Debug Adapter Protocol.
 
 [![npm version](https://img.shields.io/npm/v/@ai-capabilities-suite/mcp-debugger-core)](https://www.npmjs.com/package/@ai-capabilities-suite/mcp-debugger-core)
 [![GitHub Release](https://img.shields.io/github/v/release/digital-defiance/mcp-debugger-core?label=Release&logo=github)](https://github.com/digital-defiance/mcp-debugger-core/releases)
@@ -15,12 +15,14 @@ This repository is part of the [AI Capabilitites Suite](https://github.com/Digit
 ## Features
 
 ### Core Debugging
+- **Node.js/JavaScript Support** - Debug Node.js applications and JavaScript code
+- **TypeScript Support** - Full TypeScript debugging with source map resolution
 - **Inspector Protocol Integration** - Full Chrome DevTools Protocol (CDP) support
 - **Breakpoint Management** - Set, remove, toggle, and list breakpoints with conditions
 - **Variable Inspection** - Inspect local/global variables, evaluate expressions, watch variables
 - **Execution Control** - Continue, step over/into/out, pause execution
 - **Call Stack Navigation** - View and navigate through stack frames
-- **Source Map Support** - Full TypeScript debugging with source map resolution
+- **Source Map Support** - Debug transpiled code with original source locations
 
 ### Advanced Features
 - **Hang Detection** - Detect infinite loops and hanging processes
