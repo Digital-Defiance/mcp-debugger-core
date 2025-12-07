@@ -852,12 +852,18 @@ throw new Error('Intentional crash');
       expect(session.getCurrentCallFrameId()).toBeUndefined();
     }, 15000);
 
-    it("should return empty array for call stack when no frames", async () => {
+    it("should return stack trace via Runtime.evaluate when no cached frames", async () => {
       session = await createSession(simpleFixture);
       (session as any).currentCallFrames = [];
 
       const stack = await session.getCallStack();
-      expect(stack).toEqual([]);
+      // With the fix, we now get a stack trace via Runtime.evaluate
+      // even when currentCallFrames is empty
+      expect(stack.length).toBeGreaterThan(0);
+      expect(stack[0]).toHaveProperty("functionName");
+      expect(stack[0]).toHaveProperty("file");
+      expect(stack[0]).toHaveProperty("line");
+      expect(stack[0]).toHaveProperty("column");
     }, 15000);
   });
 });
