@@ -987,15 +987,17 @@ export class DebugSession {
           const frames: StackFrame[] = [];
 
           for (const line of stackLines) {
-            // Parse stack trace line format: "    at functionName (file:line:column)"
-            const match = line.match(
-              /at\s+(.+?)\s+\((.+?):(\d+):(\d+)\)|at\s+(.+?):(\d+):(\d+)/
+            // Parse stack trace line format: "    at functionName (file:line:column)" or "    at file:line:column"
+            const matchWithFunction = line.match(
+              /at\s+(.+?)\s+\((.+?):(\d+):(\d+)\)/
             );
-            if (match) {
-              const functionName = match[1] || match[5] || "(anonymous)";
-              let filePath = match[2] || match[5] || "";
-              const lineNum = parseInt(match[3] || match[6] || "0");
-              const column = parseInt(match[4] || match[7] || "0");
+            const matchWithoutFunction = line.match(/at\s+(.+?):(\d+):(\d+)/);
+
+            if (matchWithFunction) {
+              const functionName = matchWithFunction[1].trim();
+              let filePath = matchWithFunction[2];
+              const lineNum = parseInt(matchWithFunction[3]);
+              const column = parseInt(matchWithFunction[4]);
 
               // Convert file:// URL to absolute path
               if (filePath.startsWith("file://")) {
@@ -1003,7 +1005,24 @@ export class DebugSession {
               }
 
               frames.push({
-                functionName: functionName.trim(),
+                functionName: functionName,
+                file: filePath,
+                line: lineNum,
+                column: column,
+                callFrameId: `frame_${frames.length}`,
+              });
+            } else if (matchWithoutFunction) {
+              let filePath = matchWithoutFunction[1];
+              const lineNum = parseInt(matchWithoutFunction[2]);
+              const column = parseInt(matchWithoutFunction[3]);
+
+              // Convert file:// URL to absolute path
+              if (filePath.startsWith("file://")) {
+                filePath = filePath.substring(7);
+              }
+
+              frames.push({
+                functionName: "(anonymous)",
                 file: filePath,
                 line: lineNum,
                 column: column,
