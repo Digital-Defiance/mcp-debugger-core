@@ -1,6 +1,6 @@
 {
   "name": "@ai-capabilities-suite/mcp-debugger-core",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "packageManager": "yarn@4.12.0",
   "description": "Node.js/JavaScript debugging engine using Chrome DevTools Protocol. Provides Inspector Protocol integration, breakpoint management, variable inspection, execution control, profiling, hang detection, and source map support for TypeScript and transpiled code.",
   "main": "./dist/index.js",

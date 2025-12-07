@@ -316,7 +316,7 @@ export class DebugSession {
           this.state = SessionState.PAUSED;
         }
         resolve();
-      }, 1000); // Increased timeout to 1 second
+      }, 2000); // Increased timeout to 2 seconds for manual pause
 
       const handler = () => {
         clearTimeout(timeout);
@@ -325,6 +325,9 @@ export class DebugSession {
 
       this.inspector!.once("Debugger.paused", handler);
     });
+
+    // Give a small additional delay to ensure currentCallFrames is populated
+    await new Promise((resolve) => setTimeout(resolve, 100));
   }
 
   /**
@@ -1001,7 +1004,9 @@ export class DebugSession {
               const column = parseInt(matchWithFunction[4]);
 
               // Convert file:// URL to absolute path
-              if (filePath.startsWith("file://")) {
+              if (filePath.startsWith("file:///")) {
+                filePath = filePath.substring(8);
+              } else if (filePath.startsWith("file://")) {
                 filePath = filePath.substring(7);
               }
 
@@ -1018,7 +1023,9 @@ export class DebugSession {
               const column = parseInt(matchWithoutFunction[3]);
 
               // Convert file:// URL to absolute path
-              if (filePath.startsWith("file://")) {
+              if (filePath.startsWith("file:///")) {
+                filePath = filePath.substring(8);
+              } else if (filePath.startsWith("file://")) {
                 filePath = filePath.substring(7);
               }
 
@@ -1053,14 +1060,22 @@ export class DebugSession {
       // CDP returns file URLs like "file:///absolute/path/to/file.js"
       let filePath = frame.url || "";
 
+      // Skip frames with no URL
+      if (!filePath) {
+        continue;
+      }
+
       // Convert file:// URL to absolute path
-      if (filePath.startsWith("file://")) {
-        filePath = filePath.substring(7); // Remove 'file://'
+      // file:// URLs have the format: file:///absolute/path (note the 3 slashes)
+      if (filePath.startsWith("file:///")) {
+        filePath = filePath.substring(8); // Remove 'file:///' to get /absolute/path
+      } else if (filePath.startsWith("file://")) {
+        filePath = filePath.substring(7); // Remove 'file://' to get relative path
       }
 
       // Ensure the path is absolute
       // If it's not already absolute, make it absolute relative to cwd
-      if (!filePath.startsWith("/")) {
+      if (!filePath.startsWith("/") && !filePath.startsWith("node:")) {
         filePath = path.resolve(this.config.cwd || process.cwd(), filePath);
       }
 
