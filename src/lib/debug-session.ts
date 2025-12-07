@@ -435,23 +435,31 @@ export class DebugSession {
     }
 
     // Kill process if still running
-    if (this.process && !this.process.killed && this.process.exitCode === null) {
+    if (
+      this.process &&
+      !this.process.killed &&
+      this.process.exitCode === null
+    ) {
       try {
         // Try graceful termination first
-        this.process.kill('SIGTERM');
-        
+        this.process.kill("SIGTERM");
+
         // Wait a bit for graceful shutdown
         await new Promise<void>((resolve) => {
           const timeout = setTimeout(() => {
             // Force kill if still running
-            if (this.process && !this.process.killed && this.process.exitCode === null) {
-              this.process.kill('SIGKILL');
+            if (
+              this.process &&
+              !this.process.killed &&
+              this.process.exitCode === null
+            ) {
+              this.process.kill("SIGKILL");
             }
             resolve();
           }, 1000);
-          
+
           if (this.process) {
-            this.process.once('exit', () => {
+            this.process.once("exit", () => {
               clearTimeout(timeout);
               resolve();
             });
@@ -962,8 +970,60 @@ export class DebugSession {
       throw new Error("Process must be paused to get call stack");
     }
 
+    // If we don't have call frames cached, try to get them via Runtime.evaluate
+    // This can happen when manually paused vs hitting a breakpoint
     if (!this.currentCallFrames || this.currentCallFrames.length === 0) {
-      return [];
+      try {
+        // Use Runtime.evaluate to get the current stack trace
+        // This works even when Debugger.paused didn't provide call frames
+        const result = await this.inspector!.send("Runtime.evaluate", {
+          expression: "new Error().stack",
+          returnByValue: true,
+        });
+
+        if (result?.result?.value) {
+          // Parse the stack trace string and return a simplified version
+          const stackLines = result.result.value.split("\n").slice(1); // Skip "Error" line
+          const frames: StackFrame[] = [];
+
+          for (const line of stackLines) {
+            // Parse stack trace line format: "    at functionName (file:line:column)"
+            const match = line.match(
+              /at\s+(.+?)\s+\((.+?):(\d+):(\d+)\)|at\s+(.+?):(\d+):(\d+)/
+            );
+            if (match) {
+              const functionName = match[1] || match[5] || "(anonymous)";
+              let filePath = match[2] || match[5] || "";
+              const lineNum = parseInt(match[3] || match[6] || "0");
+              const column = parseInt(match[4] || match[7] || "0");
+
+              // Convert file:// URL to absolute path
+              if (filePath.startsWith("file://")) {
+                filePath = filePath.substring(7);
+              }
+
+              frames.push({
+                functionName: functionName.trim(),
+                file: filePath,
+                line: lineNum,
+                column: column,
+                callFrameId: `frame_${frames.length}`,
+              });
+            }
+          }
+
+          if (frames.length > 0) {
+            return frames;
+          }
+        }
+
+        // If we still don't have frames, return empty array
+        return [];
+      } catch (error) {
+        // If we can't get the stack trace, return empty array
+        // This can happen if the process has exited
+        return [];
+      }
     }
 
     const frames: StackFrame[] = [];
