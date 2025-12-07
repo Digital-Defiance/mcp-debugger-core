@@ -988,10 +988,11 @@ export class DebugSession {
 
           for (const line of stackLines) {
             // Parse stack trace line format: "    at functionName (file:line:column)" or "    at file:line:column"
+            // Use non-greedy match and look for :number:number at the end
             const matchWithFunction = line.match(
-              /at\s+(.+?)\s+\((.+?):(\d+):(\d+)\)/
+              /at\s+(.+?)\s+\((.+):(\d+):(\d+)\)$/
             );
-            const matchWithoutFunction = line.match(/at\s+(.+?):(\d+):(\d+)/);
+            const matchWithoutFunction = line.match(/at\s+(.+):(\d+):(\d+)$/);
 
             if (matchWithFunction) {
               const functionName = matchWithFunction[1].trim();
