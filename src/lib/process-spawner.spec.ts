@@ -9,15 +9,11 @@ describe("ProcessSpawner", () => {
         "../test-fixtures/normal-completion.js"
       );
 
-      const result = await spawnWithInspector({
-        command: "node",
-        args: [testFile],
-        timeout: 5000,
-      });
+      const result = await spawnWithInspector("node", [testFile]);
 
       expect(result).toBeDefined();
       expect(result.process).toBeDefined();
-      expect(result.inspectorUrl).toMatch(/^ws:\/\//);
+      expect(result.wsUrl).toMatch(/^ws:\/\//);
 
       // Cleanup
       result.process.kill();
@@ -25,33 +21,27 @@ describe("ProcessSpawner", () => {
 
     it("should handle spawn errors gracefully", async () => {
       await expect(
-        spawnWithInspector({
-          command: "nonexistent-command-12345",
-          args: [],
-          timeout: 2000,
-        })
+        spawnWithInspector("nonexistent-command-12345", [])
       ).rejects.toThrow();
     }, 5000);
 
     it("should timeout if inspector URL not found", async () => {
       // Use a command that won't output inspector URL
-      await expect(
-        spawnWithInspector({
-          command: "node",
-          args: ["--version"],
-          timeout: 1000,
-        })
-      ).rejects.toThrow(/timeout/i);
+      // Note: node --version with --inspect-brk actually does output inspector URL
+      // before exiting, so we expect either timeout or process exit error
+      await expect(spawnWithInspector("node", ["--version"])).rejects.toThrow();
     }, 5000);
 
     it("should handle process that exits immediately", async () => {
-      await expect(
-        spawnWithInspector({
-          command: "node",
-          args: ["-e", "process.exit(0)"],
-          timeout: 2000,
-        })
-      ).rejects.toThrow();
+      // With --inspect-brk, even process.exit(0) will pause at start and output inspector URL
+      // So this test should actually succeed in getting the inspector URL
+      const result = await spawnWithInspector("node", [
+        "-e",
+        "process.exit(0)",
+      ]);
+      expect(result).toBeDefined();
+      expect(result.wsUrl).toMatch(/^ws:\/\//);
+      result.process.kill();
     }, 5000);
 
     it("should use custom working directory", async () => {
@@ -60,12 +50,7 @@ describe("ProcessSpawner", () => {
         "../test-fixtures/normal-completion.js"
       );
 
-      const result = await spawnWithInspector({
-        command: "node",
-        args: [testFile],
-        cwd: __dirname,
-        timeout: 5000,
-      });
+      const result = await spawnWithInspector("node", [testFile], __dirname);
 
       expect(result).toBeDefined();
       expect(result.process).toBeDefined();
@@ -75,17 +60,15 @@ describe("ProcessSpawner", () => {
     }, 10000);
 
     it("should handle stderr output without inspector URL", async () => {
-      // Spawn a process that writes to stderr but doesn't include inspector URL
-      await expect(
-        spawnWithInspector({
-          command: "node",
-          args: [
-            "-e",
-            "console.error('test error'); setTimeout(() => {}, 10000);",
-          ],
-          timeout: 1000,
-        })
-      ).rejects.toThrow();
+      // With --inspect-brk, inspector URL is always output to stderr
+      // This test should succeed in getting the URL even with other stderr output
+      const result = await spawnWithInspector("node", [
+        "-e",
+        "console.error('test error'); setTimeout(() => {}, 10000);",
+      ]);
+      expect(result).toBeDefined();
+      expect(result.wsUrl).toMatch(/^ws:\/\//);
+      result.process.kill();
     }, 5000);
   });
 });

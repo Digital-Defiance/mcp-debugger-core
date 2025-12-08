@@ -1,12 +1,12 @@
-import { spawn, ChildProcess } from 'child_process';
-import { InspectorClient } from './inspector-client';
+import { spawn, ChildProcess } from "child_process";
+import { InspectorClient } from "./inspector-client";
 
 /**
  * Test result for a single test case
  */
 export interface TestCase {
   name: string;
-  status: 'passed' | 'failed' | 'skipped';
+  status: "passed" | "failed" | "skipped";
   duration?: number;
   failureMessage?: string;
   failureStack?: string;
@@ -25,7 +25,7 @@ export interface TestSuite {
  * Complete test execution result
  */
 export interface TestExecutionResult {
-  framework: 'jest' | 'mocha' | 'vitest';
+  framework: "jest" | "mocha" | "vitest";
   success: boolean;
   exitCode: number | null;
   suites: TestSuite[];
@@ -43,7 +43,7 @@ export interface TestExecutionResult {
  * Configuration for test execution
  */
 export interface TestExecutionConfig {
-  framework: 'jest' | 'mocha' | 'vitest';
+  framework: "jest" | "mocha" | "vitest";
   testFile?: string;
   args?: string[];
   cwd?: string;
@@ -56,7 +56,7 @@ export interface TestExecutionConfig {
  */
 export function parseJestOutput(
   stdout: string,
-  stderr: string,
+  stderr: string
 ): Partial<TestExecutionResult> {
   const suites: TestSuite[] = [];
   let totalTests = 0;
@@ -64,6 +64,8 @@ export function parseJestOutput(
   let failedTests = 0;
   let skippedTests = 0;
 
+  // Try JSON parsing first
+  let jsonParsed = false;
   try {
     // Jest outputs JSON when using --json flag
     // Try to find JSON in stdout
@@ -72,6 +74,7 @@ export function parseJestOutput(
       const result = JSON.parse(jsonMatch[0]);
 
       if (result.testResults) {
+        jsonParsed = true;
         for (const testResult of result.testResults) {
           const tests: TestCase[] = [];
 
@@ -80,30 +83,30 @@ export function parseJestOutput(
               const test: TestCase = {
                 name: assertion.fullName || assertion.title,
                 status:
-                  assertion.status === 'passed'
-                    ? 'passed'
-                    : assertion.status === 'pending'
-                      ? 'skipped'
-                      : 'failed',
+                  assertion.status === "passed"
+                    ? "passed"
+                    : assertion.status === "pending"
+                    ? "skipped"
+                    : "failed",
                 duration: assertion.duration,
               };
 
-              if (assertion.status === 'failed' && assertion.failureMessages) {
-                test.failureMessage = assertion.failureMessages.join('\n');
-                test.failureStack = assertion.failureMessages.join('\n');
+              if (assertion.status === "failed" && assertion.failureMessages) {
+                test.failureMessage = assertion.failureMessages.join("\n");
+                test.failureStack = assertion.failureMessages.join("\n");
               }
 
               tests.push(test);
 
-              if (test.status === 'passed') passedTests++;
-              else if (test.status === 'failed') failedTests++;
-              else if (test.status === 'skipped') skippedTests++;
+              if (test.status === "passed") passedTests++;
+              else if (test.status === "failed") failedTests++;
+              else if (test.status === "skipped") skippedTests++;
               totalTests++;
             }
           }
 
           suites.push({
-            name: testResult.name || 'Unknown Suite',
+            name: testResult.name || "Unknown Suite",
             tests,
             duration: testResult.perfStats?.runtime,
           });
@@ -111,14 +114,18 @@ export function parseJestOutput(
       }
     }
   } catch (error) {
-    // If JSON parsing fails, try to parse text output
-    // This is a fallback for when --json is not used
-    const lines = stdout.split('\n');
+    // JSON parsing failed, will fall through to text parsing
+    jsonParsed = false;
+  }
+
+  // If JSON parsing didn't work, try text parsing
+  if (!jsonParsed) {
+    const lines = stdout.split("\n");
     let currentSuite: TestSuite | null = null;
 
     for (const line of lines) {
       // Look for test results in text format
-      if (line.includes('PASS') || line.includes('FAIL')) {
+      if (line.includes("PASS") || line.includes("FAIL")) {
         if (currentSuite) {
           suites.push(currentSuite);
         }
@@ -126,22 +133,32 @@ export function parseJestOutput(
           name: line.trim(),
           tests: [],
         };
-      } else if (line.includes('✓') || line.includes('✔')) {
+      } else if (
+        line.includes("✓") ||
+        line.includes("✔") ||
+        /^\s+✓/.test(line) ||
+        /^\s+✔/.test(line)
+      ) {
         passedTests++;
         totalTests++;
         if (currentSuite) {
           currentSuite.tests.push({
             name: line.trim(),
-            status: 'passed',
+            status: "passed",
           });
         }
-      } else if (line.includes('✕') || line.includes('×')) {
+      } else if (
+        line.includes("✕") ||
+        line.includes("×") ||
+        /^\s+✕/.test(line) ||
+        /^\s+×/.test(line)
+      ) {
         failedTests++;
         totalTests++;
         if (currentSuite) {
           currentSuite.tests.push({
             name: line.trim(),
-            status: 'failed',
+            status: "failed",
           });
         }
       }
@@ -166,7 +183,7 @@ export function parseJestOutput(
  */
 export function parseMochaOutput(
   stdout: string,
-  stderr: string,
+  stderr: string
 ): Partial<TestExecutionResult> {
   const suites: TestSuite[] = [];
   let totalTests = 0;
@@ -184,7 +201,7 @@ export function parseMochaOutput(
         const suiteMap = new Map<string, TestCase[]>();
 
         for (const test of result.tests) {
-          const suiteName = test.fullTitle?.split(' ')[0] || 'Unknown Suite';
+          const suiteName = test.fullTitle?.split(" ")[0] || "Unknown Suite";
 
           if (!suiteMap.has(suiteName)) {
             suiteMap.set(suiteName, []);
@@ -192,7 +209,7 @@ export function parseMochaOutput(
 
           const testCase: TestCase = {
             name: test.title || test.fullTitle,
-            status: test.pass ? 'passed' : test.pending ? 'skipped' : 'failed',
+            status: test.pass ? "passed" : test.pending ? "skipped" : "failed",
             duration: test.duration,
           };
 
@@ -203,9 +220,9 @@ export function parseMochaOutput(
 
           suiteMap.get(suiteName)!.push(testCase);
 
-          if (testCase.status === 'passed') passedTests++;
-          else if (testCase.status === 'failed') failedTests++;
-          else if (testCase.status === 'skipped') skippedTests++;
+          if (testCase.status === "passed") passedTests++;
+          else if (testCase.status === "failed") failedTests++;
+          else if (testCase.status === "skipped") skippedTests++;
           totalTests++;
         }
 
@@ -228,16 +245,16 @@ export function parseMochaOutput(
   }
 
   // Fallback to text parsing (if no JSON or JSON parsing failed)
-  const lines = stdout.split('\n');
+  const lines = stdout.split("\n");
 
   for (const line of lines) {
-    if (line.includes('passing')) {
+    if (line.includes("passing")) {
       const match = line.match(/(\d+) passing/);
       if (match) passedTests = parseInt(match[1]);
-    } else if (line.includes('failing')) {
+    } else if (line.includes("failing")) {
       const match = line.match(/(\d+) failing/);
       if (match) failedTests = parseInt(match[1]);
-    } else if (line.includes('pending')) {
+    } else if (line.includes("pending")) {
       const match = line.match(/(\d+) pending/);
       if (match) skippedTests = parseInt(match[1]);
     }
@@ -259,7 +276,7 @@ export function parseMochaOutput(
  */
 export function parseVitestOutput(
   stdout: string,
-  stderr: string,
+  stderr: string
 ): Partial<TestExecutionResult> {
   const suites: TestSuite[] = [];
   let totalTests = 0;
@@ -267,6 +284,8 @@ export function parseVitestOutput(
   let failedTests = 0;
   let skippedTests = 0;
 
+  // Try JSON parsing first
+  let jsonParsed = false;
   try {
     // Vitest can output JSON with --reporter=json
     const jsonMatch = stdout.match(/\{[\s\S]*"testResults"[\s\S]*\}/);
@@ -274,6 +293,7 @@ export function parseVitestOutput(
       const result = JSON.parse(jsonMatch[0]);
 
       if (result.testResults) {
+        jsonParsed = true;
         for (const testResult of result.testResults) {
           const tests: TestCase[] = [];
 
@@ -282,52 +302,65 @@ export function parseVitestOutput(
               const test: TestCase = {
                 name: assertion.fullName || assertion.title,
                 status:
-                  assertion.status === 'passed'
-                    ? 'passed'
-                    : assertion.status === 'skipped'
-                      ? 'skipped'
-                      : 'failed',
+                  assertion.status === "passed"
+                    ? "passed"
+                    : assertion.status === "skipped"
+                    ? "skipped"
+                    : "failed",
                 duration: assertion.duration,
               };
 
-              if (assertion.status === 'failed' && assertion.failureMessages) {
-                test.failureMessage = assertion.failureMessages.join('\n');
-                test.failureStack = assertion.failureMessages.join('\n');
+              if (assertion.status === "failed" && assertion.failureMessages) {
+                test.failureMessage = assertion.failureMessages.join("\n");
+                test.failureStack = assertion.failureMessages.join("\n");
               }
 
               tests.push(test);
 
-              if (test.status === 'passed') passedTests++;
-              else if (test.status === 'failed') failedTests++;
-              else if (test.status === 'skipped') skippedTests++;
+              if (test.status === "passed") passedTests++;
+              else if (test.status === "failed") failedTests++;
+              else if (test.status === "skipped") skippedTests++;
               totalTests++;
             }
           }
 
           suites.push({
-            name: testResult.name || 'Unknown Suite',
+            name: testResult.name || "Unknown Suite",
             tests,
           });
         }
       }
     }
   } catch (error) {
-    // Fallback to text parsing
-    const lines = stdout.split('\n');
+    // JSON parsing failed, will fall through to text parsing
+    jsonParsed = false;
+  }
+
+  // If JSON parsing didn't work, try text parsing
+  if (!jsonParsed) {
+    const lines = stdout.split("\n");
 
     for (const line of lines) {
-      if (line.includes('Test Files')) {
+      if (line.includes("Test Files")) {
         const match = line.match(/(\d+) passed/);
         if (match) passedTests = parseInt(match[1]);
-      } else if (line.includes('Tests')) {
-        const match = line.match(/(\d+) passed/);
-        if (match) passedTests = parseInt(match[1]);
+      } else if (line.includes("Tests")) {
+        // Parse the Tests line which can have format like:
+        // "Tests  10 passed (10)" or "Tests  8 passed, 2 failed (10)"
+        const passMatch = line.match(/(\d+) passed/);
+        if (passMatch) passedTests = parseInt(passMatch[1]);
         const failMatch = line.match(/(\d+) failed/);
         if (failMatch) failedTests = parseInt(failMatch[1]);
+        // Extract total from parentheses
+        const totalMatch = line.match(/\((\d+)\)/);
+        if (totalMatch) totalTests = parseInt(totalMatch[1]);
       }
     }
 
-    totalTests = passedTests + failedTests + skippedTests;
+    // If we didn't get total from parentheses, calculate it
+    if (totalTests === 0) {
+      totalTests = passedTests + failedTests + skippedTests;
+    }
   }
 
   return {
@@ -346,7 +379,7 @@ export function parseVitestOutput(
  * Requirements: 6.1, 6.2, 6.3, 6.4, 6.5
  */
 export async function executeTests(
-  config: TestExecutionConfig,
+  config: TestExecutionConfig
 ): Promise<TestExecutionResult> {
   const {
     framework,
@@ -363,39 +396,39 @@ export async function executeTests(
 
     // Build command based on framework
     switch (framework) {
-      case 'jest':
-        command = 'npx';
-        commandArgs = ['jest'];
+      case "jest":
+        command = "npx";
+        commandArgs = ["jest"];
         if (testFile) commandArgs.push(testFile);
         // Add --json for structured output
-        if (!args.includes('--json')) {
-          commandArgs.push('--json');
+        if (!args.includes("--json")) {
+          commandArgs.push("--json");
         }
         commandArgs.push(...args);
         break;
 
-      case 'mocha':
-        command = 'npx';
-        commandArgs = ['mocha'];
+      case "mocha":
+        command = "npx";
+        commandArgs = ["mocha"];
         if (testFile) commandArgs.push(testFile);
         // Add --reporter json for structured output
-        if (!args.some((arg) => arg.includes('--reporter'))) {
-          commandArgs.push('--reporter', 'json');
+        if (!args.some((arg) => arg.includes("--reporter"))) {
+          commandArgs.push("--reporter", "json");
         }
         commandArgs.push(...args);
         break;
 
-      case 'vitest':
-        command = 'npx';
-        commandArgs = ['vitest'];
+      case "vitest":
+        command = "npx";
+        commandArgs = ["vitest"];
         if (testFile) commandArgs.push(testFile);
         // Add --reporter=json for structured output
-        if (!args.some((arg) => arg.includes('--reporter'))) {
-          commandArgs.push('--reporter=json');
+        if (!args.some((arg) => arg.includes("--reporter"))) {
+          commandArgs.push("--reporter=json");
         }
         // Add --run to prevent watch mode
-        if (!args.includes('--run')) {
-          commandArgs.push('--run');
+        if (!args.includes("--run")) {
+          commandArgs.push("--run");
         }
         commandArgs.push(...args);
         break;
@@ -407,28 +440,28 @@ export async function executeTests(
 
     // Add inspector flags if requested
     if (attachInspector) {
-      commandArgs.unshift('--inspect-brk=0', '--enable-source-maps');
+      commandArgs.unshift("--inspect-brk=0", "--enable-source-maps");
     }
 
     const child = spawn(command, commandArgs, {
       cwd,
-      stdio: ['ignore', 'pipe', 'pipe'],
-      env: { ...process.env, NODE_OPTIONS: '--enable-source-maps' },
+      stdio: ["ignore", "pipe", "pipe"],
+      env: { ...process.env, NODE_OPTIONS: "--enable-source-maps" },
     });
 
-    let stdout = '';
-    let stderr = '';
+    let stdout = "";
+    let stderr = "";
     let wsUrl: string | undefined;
     const startTime = Date.now();
 
     // Capture stdout
-    child.stdout?.on('data', (data: Buffer) => {
+    child.stdout?.on("data", (data: Buffer) => {
       const output = data.toString();
       stdout += output;
     });
 
     // Capture stderr and look for inspector URL
-    child.stderr?.on('data', (data: Buffer) => {
+    child.stderr?.on("data", (data: Buffer) => {
       const output = data.toString();
       stderr += output;
 
@@ -448,20 +481,20 @@ export async function executeTests(
     }, timeout);
 
     // Handle process exit
-    child.on('exit', (code: number | null) => {
+    child.on("exit", (code: number | null) => {
       clearTimeout(timeoutHandle);
       const duration = Date.now() - startTime;
 
       // Parse output based on framework
       let parsed: Partial<TestExecutionResult>;
       switch (framework) {
-        case 'jest':
+        case "jest":
           parsed = parseJestOutput(stdout, stderr);
           break;
-        case 'mocha':
+        case "mocha":
           parsed = parseMochaOutput(stdout, stderr);
           break;
-        case 'vitest':
+        case "vitest":
           parsed = parseVitestOutput(stdout, stderr);
           break;
         default:
@@ -487,7 +520,7 @@ export async function executeTests(
     });
 
     // Handle spawn errors
-    child.on('error', (error: Error) => {
+    child.on("error", (error: Error) => {
       clearTimeout(timeoutHandle);
       reject(error);
     });

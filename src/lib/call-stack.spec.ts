@@ -337,11 +337,14 @@ describe("Call Stack Operations", () => {
       expect(() => session.switchToFrame(-1)).toThrow("out of range");
 
       // Try to switch to an invalid frame index (too large)
-      expect(() => session.switchToFrame(callStack.length)).toThrow(
+      // Note: getCallStack() filters out node: internal frames, so callStack.length
+      // may be less than currentCallFrames.length. Use a clearly invalid index.
+      const currentFrames = session.getCurrentCallFrames();
+      expect(() => session.switchToFrame(currentFrames.length)).toThrow(
         "out of range"
       );
 
-      expect(() => session.switchToFrame(callStack.length + 10)).toThrow(
+      expect(() => session.switchToFrame(currentFrames.length + 10)).toThrow(
         "out of range"
       );
     } finally {

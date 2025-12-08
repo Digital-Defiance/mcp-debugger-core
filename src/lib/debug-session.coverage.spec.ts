@@ -493,7 +493,20 @@ throw new Error('Intentional crash');
 
   describe("7. Call Stack", () => {
     it("should get call stack with absolute paths", async () => {
-      session = await createSession(nestedFixture);
+      session = await createSession(loopFixture); // Use loop fixture which runs longer
+
+      // Set a breakpoint in the loop
+      await session.setBreakpoint(loopFixture, 4); // Line 4 is inside the for loop
+
+      // Wait for the Debugger.paused event
+      const pausedPromise = new Promise<void>((resolve) => {
+        session.getInspector()!.once("Debugger.paused", () => resolve());
+      });
+
+      // Resume to hit the breakpoint
+      await session.resume();
+      await pausedPromise;
+
       const stack = await session.getCallStack();
 
       expect(stack).toBeDefined();

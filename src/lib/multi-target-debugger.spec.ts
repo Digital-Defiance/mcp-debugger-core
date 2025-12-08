@@ -1,6 +1,32 @@
 import { MultiTargetDebugger, DebugTarget } from "./multi-target-debugger";
 import { DebugSession } from "./debug-session";
 import { EventEmitter } from "events";
+import { Readable } from "stream";
+
+// Mock process with stdout/stderr
+class MockProcess extends EventEmitter {
+  stdout = new EventEmitter() as any;
+  stderr = new EventEmitter() as any;
+  stdin = new EventEmitter() as any;
+  pid = 12345;
+  killed = false;
+  exitCode: number | null = null;
+
+  kill() {
+    this.killed = true;
+    return true;
+  }
+
+  // Helper method to emit stdout data for testing
+  emitStdout(data: string) {
+    this.stdout.emit("data", Buffer.from(data));
+  }
+
+  // Helper method to emit stderr data for testing
+  emitStderr(data: string) {
+    this.stderr.emit("data", Buffer.from(data));
+  }
+}
 
 // Mock DebugSession
 class MockDebugSession extends EventEmitter {
@@ -11,6 +37,9 @@ class MockDebugSession extends EventEmitter {
     condition?: string;
   }> = [];
   private nextBpId = 1;
+  private mockProcess = new MockProcess();
+  public stopCalled = false;
+  public cleanupCalled = false;
 
   async setBreakpoint(
     file: string,
@@ -34,12 +63,35 @@ class MockDebugSession extends EventEmitter {
     // Mock implementation
   }
 
+  async resume(): Promise<void> {
+    // Mock implementation - alias for continue
+  }
+
   async pause(): Promise<void> {
     // Mock implementation
   }
 
   async stop(): Promise<void> {
-    // Mock implementation
+    this.stopCalled = true;
+  }
+
+  async cleanup(): Promise<void> {
+    this.cleanupCalled = true;
+  }
+
+  getProcess() {
+    // Return mock process with stdout/stderr for log aggregation tests
+    return this.mockProcess;
+  }
+
+  // Helper method to emit stdout for testing
+  emitStdout(data: string) {
+    this.mockProcess.emitStdout(data);
+  }
+
+  // Helper method to emit stderr for testing
+  emitStderr(data: string) {
+    this.mockProcess.emitStderr(data);
   }
 }
 
@@ -340,16 +392,16 @@ describe("MultiTargetDebugger", () => {
       const session1 = new MockDebugSession() as unknown as DebugSession;
       const session2 = new MockDebugSession() as unknown as DebugSession;
 
-      const continue1 = jest.spyOn(session1, "continue");
-      const continue2 = jest.spyOn(session2, "continue");
+      const resume1 = jest.spyOn(session1, "resume");
+      const resume2 = jest.spyOn(session2, "resume");
 
       multiDebugger.addTarget("target1", "Target 1", session1);
       multiDebugger.addTarget("target2", "Target 2", session2);
 
       await multiDebugger.continueAll();
 
-      expect(continue1).toHaveBeenCalled();
-      expect(continue2).toHaveBeenCalled();
+      expect(resume1).toHaveBeenCalled();
+      expect(resume2).toHaveBeenCalled();
     });
   });
 
@@ -358,16 +410,16 @@ describe("MultiTargetDebugger", () => {
       const session1 = new MockDebugSession() as unknown as DebugSession;
       const session2 = new MockDebugSession() as unknown as DebugSession;
 
-      const continue1 = jest.spyOn(session1, "continue");
-      const continue2 = jest.spyOn(session2, "continue");
+      const resume1 = jest.spyOn(session1, "resume");
+      const resume2 = jest.spyOn(session2, "resume");
 
       multiDebugger.addTarget("target1", "Target 1", session1);
       multiDebugger.addTarget("target2", "Target 2", session2);
 
       await multiDebugger.continueTargets(["target1"]);
 
-      expect(continue1).toHaveBeenCalled();
-      expect(continue2).not.toHaveBeenCalled();
+      expect(resume1).toHaveBeenCalled();
+      expect(resume2).not.toHaveBeenCalled();
     });
   });
 
@@ -391,8 +443,12 @@ describe("MultiTargetDebugger", () => {
 
   describe("Log aggregation", () => {
     it("should aggregate logs from targets", (done) => {
-      const session = new MockDebugSession() as unknown as DebugSession;
-      multiDebugger.addTarget("target1", "Target 1", session);
+      const session = new MockDebugSession();
+      multiDebugger.addTarget(
+        "target1",
+        "Target 1",
+        session as unknown as DebugSession
+      );
 
       multiDebugger.on("log", (log: any) => {
         expect(log.targetId).toBe("target1");
@@ -401,14 +457,20 @@ describe("MultiTargetDebugger", () => {
         done();
       });
 
-      session.emit("stdout", "test message");
+      // Emit on the process stdout, not the session
+      session.emitStdout("test message");
     });
 
     it("should get aggregated logs", (done) => {
-      const session = new MockDebugSession() as unknown as DebugSession;
-      multiDebugger.addTarget("target1", "Target 1", session);
+      const session = new MockDebugSession();
+      multiDebugger.addTarget(
+        "target1",
+        "Target 1",
+        session as unknown as DebugSession
+      );
 
-      session.emit("stdout", "test message");
+      // Emit on the process stdout
+      session.emitStdout("test message");
 
       setTimeout(() => {
         const logs = multiDebugger.getAggregatedLogs();
@@ -419,14 +481,22 @@ describe("MultiTargetDebugger", () => {
     });
 
     it("should filter logs by target ID", (done) => {
-      const session1 = new MockDebugSession() as unknown as DebugSession;
-      const session2 = new MockDebugSession() as unknown as DebugSession;
+      const session1 = new MockDebugSession();
+      const session2 = new MockDebugSession();
 
-      multiDebugger.addTarget("target1", "Target 1", session1);
-      multiDebugger.addTarget("target2", "Target 2", session2);
+      multiDebugger.addTarget(
+        "target1",
+        "Target 1",
+        session1 as unknown as DebugSession
+      );
+      multiDebugger.addTarget(
+        "target2",
+        "Target 2",
+        session2 as unknown as DebugSession
+      );
 
-      session1.emit("stdout", "message 1");
-      session2.emit("stdout", "message 2");
+      session1.emitStdout("message 1");
+      session2.emitStdout("message 2");
 
       setTimeout(() => {
         const logs = multiDebugger.getAggregatedLogs({
@@ -439,11 +509,15 @@ describe("MultiTargetDebugger", () => {
     });
 
     it("should filter logs by level", (done) => {
-      const session = new MockDebugSession() as unknown as DebugSession;
-      multiDebugger.addTarget("target1", "Target 1", session);
+      const session = new MockDebugSession();
+      multiDebugger.addTarget(
+        "target1",
+        "Target 1",
+        session as unknown as DebugSession
+      );
 
-      session.emit("stdout", "stdout message");
-      session.emit("stderr", "stderr message");
+      session.emitStdout("stdout message");
+      session.emitStderr("stderr message");
 
       setTimeout(() => {
         const logs = multiDebugger.getAggregatedLogs({ level: "stderr" });
@@ -454,12 +528,16 @@ describe("MultiTargetDebugger", () => {
     });
 
     it("should limit log results", (done) => {
-      const session = new MockDebugSession() as unknown as DebugSession;
-      multiDebugger.addTarget("target1", "Target 1", session);
+      const session = new MockDebugSession();
+      multiDebugger.addTarget(
+        "target1",
+        "Target 1",
+        session as unknown as DebugSession
+      );
 
-      session.emit("stdout", "message 1");
-      session.emit("stdout", "message 2");
-      session.emit("stdout", "message 3");
+      session.emitStdout("message 1");
+      session.emitStdout("message 2");
+      session.emitStdout("message 3");
 
       setTimeout(() => {
         const logs = multiDebugger.getAggregatedLogs({ limit: 2 });
@@ -471,10 +549,14 @@ describe("MultiTargetDebugger", () => {
     });
 
     it("should clear logs", (done) => {
-      const session = new MockDebugSession() as unknown as DebugSession;
-      multiDebugger.addTarget("target1", "Target 1", session);
+      const session = new MockDebugSession();
+      multiDebugger.addTarget(
+        "target1",
+        "Target 1",
+        session as unknown as DebugSession
+      );
 
-      session.emit("stdout", "test message");
+      session.emitStdout("test message");
 
       setTimeout(() => {
         multiDebugger.clearLogs();
@@ -485,13 +567,17 @@ describe("MultiTargetDebugger", () => {
     });
 
     it("should respect max log size", (done) => {
-      const session = new MockDebugSession() as unknown as DebugSession;
-      multiDebugger.addTarget("target1", "Target 1", session);
+      const session = new MockDebugSession();
+      multiDebugger.addTarget(
+        "target1",
+        "Target 1",
+        session as unknown as DebugSession
+      );
       multiDebugger.setMaxLogSize(2);
 
-      session.emit("stdout", "message 1");
-      session.emit("stdout", "message 2");
-      session.emit("stdout", "message 3");
+      session.emitStdout("message 1");
+      session.emitStdout("message 2");
+      session.emitStdout("message 3");
 
       setTimeout(() => {
         const logs = multiDebugger.getAggregatedLogs();
@@ -541,16 +627,16 @@ describe("MultiTargetDebugger", () => {
       const session1 = new MockDebugSession() as unknown as DebugSession;
       const session2 = new MockDebugSession() as unknown as DebugSession;
 
-      const stop1 = jest.spyOn(session1, "stop");
-      const stop2 = jest.spyOn(session2, "stop");
+      const cleanup1 = jest.spyOn(session1, "cleanup");
+      const cleanup2 = jest.spyOn(session2, "cleanup");
 
       multiDebugger.addTarget("target1", "Target 1", session1);
       multiDebugger.addTarget("target2", "Target 2", session2);
 
       await multiDebugger.stopAll();
 
-      expect(stop1).toHaveBeenCalled();
-      expect(stop2).toHaveBeenCalled();
+      expect(cleanup1).toHaveBeenCalled();
+      expect(cleanup2).toHaveBeenCalled();
       expect(multiDebugger.getAllTargets()).toHaveLength(0);
     });
 

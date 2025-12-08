@@ -152,6 +152,7 @@ export class DebugSession {
   private cpuProfiler: CPUProfiler | null = null;
   private memoryProfiler: MemoryProfiler | null = null;
   private performanceTimeline: PerformanceTimeline | null = null;
+  private scriptUrls = new Map<string, string>(); // Map scriptId to URL
 
   constructor(id: string, config: DebugSessionConfig) {
     this.id = id;
@@ -238,6 +239,17 @@ export class DebugSession {
         this.currentCallFrames = params?.callFrames || [];
         this.currentFrameIndex = 0; // Reset to top frame when paused
 
+        // Populate frame URLs from scriptUrls map if they're missing
+        // This is necessary because CDP doesn't always include URLs in call frames
+        for (const frame of this.currentCallFrames) {
+          if (!frame.url && frame.location?.scriptId) {
+            const url = this.scriptUrls.get(frame.location.scriptId);
+            if (url) {
+              frame.url = url;
+            }
+          }
+        }
+
         // Evaluate watched variables when paused
         if (this.watchedVariables.size > 0) {
           try {
@@ -253,6 +265,13 @@ export class DebugSession {
         this.state = SessionState.RUNNING;
         this.currentCallFrames = [];
         this.currentFrameIndex = 0; // Reset frame index when resumed
+      });
+
+      // Track script URLs for resolving scriptId to file paths
+      this.inspector.on("Debugger.scriptParsed", (params: any) => {
+        if (params.scriptId && params.url) {
+          this.scriptUrls.set(params.scriptId, params.url);
+        }
       });
 
       // Handle process exit
@@ -271,19 +290,23 @@ export class DebugSession {
 
       // Wait for the initial pause from --inspect-brk
       // The process should pause at the first line after runIfWaitingForDebugger
-      await new Promise<void>((resolve) => {
-        const timeout = setTimeout(() => {
-          // If we don't get a paused event within 1 second, assume we're paused
-          this.state = SessionState.PAUSED;
-          resolve();
-        }, 1000);
+      // We poll for the state to become PAUSED (set by the Debugger.paused event handler)
+      const startTime = Date.now();
+      const maxWaitTime = 2000;
+      while (Date.now() - startTime < maxWaitTime) {
+        // Check if state has been changed to PAUSED by the event handler
+        const currentState = this.state as SessionState;
+        if (currentState === SessionState.PAUSED) {
+          break;
+        }
+        await new Promise((r) => setTimeout(r, 50));
+      }
 
-        this.inspector!.once("Debugger.paused", () => {
-          clearTimeout(timeout);
-          this.state = SessionState.PAUSED;
-          resolve();
-        });
-      });
+      // If still not paused after timeout, set state manually
+      const finalState = this.state as SessionState;
+      if (finalState !== SessionState.PAUSED) {
+        this.state = SessionState.PAUSED;
+      }
     } catch (error) {
       this.state = SessionState.TERMINATED;
       await this.cleanup();
@@ -486,6 +509,7 @@ export class DebugSession {
     this.watchedVariables.clear();
     this.watchedVariableChanges.clear();
     this.exceptionBreakpoints.clear();
+    this.scriptUrls.clear();
     this.crashHandlers = [];
 
     // Clear source map cache
@@ -1003,9 +1027,14 @@ export class DebugSession {
               const lineNum = parseInt(matchWithFunction[3]);
               const column = parseInt(matchWithFunction[4]);
 
+              // Skip internal Node.js frames (node: protocol)
+              if (filePath.startsWith("node:")) {
+                continue;
+              }
+
               // Convert file:// URL to absolute path
               if (filePath.startsWith("file:///")) {
-                filePath = filePath.substring(8);
+                filePath = filePath.substring(7); // Remove 'file://' to keep leading /
               } else if (filePath.startsWith("file://")) {
                 filePath = filePath.substring(7);
               }
@@ -1022,9 +1051,14 @@ export class DebugSession {
               const lineNum = parseInt(matchWithoutFunction[2]);
               const column = parseInt(matchWithoutFunction[3]);
 
+              // Skip internal Node.js frames (node: protocol)
+              if (filePath.startsWith("node:")) {
+                continue;
+              }
+
               // Convert file:// URL to absolute path
               if (filePath.startsWith("file:///")) {
-                filePath = filePath.substring(8);
+                filePath = filePath.substring(7); // Remove 'file://' to keep leading /
               } else if (filePath.startsWith("file://")) {
                 filePath = filePath.substring(7);
               }
@@ -1058,19 +1092,26 @@ export class DebugSession {
     for (const frame of this.currentCallFrames) {
       // Extract file path from the URL
       // CDP returns file URLs like "file:///absolute/path/to/file.js"
+      // Note: URLs are populated from scriptId in the Debugger.paused event handler
       let filePath = frame.url || "";
 
-      // Skip frames with no URL
+      // Skip frames with no URL (internal Node.js frames)
       if (!filePath) {
+        continue;
+      }
+
+      // Skip internal Node.js frames (node: protocol)
+      // These are internal runtime frames that users don't need to see
+      if (filePath.startsWith("node:")) {
         continue;
       }
 
       // Convert file:// URL to absolute path
       // file:// URLs have the format: file:///absolute/path (note the 3 slashes)
       if (filePath.startsWith("file:///")) {
-        filePath = filePath.substring(8); // Remove 'file:///' to get /absolute/path
+        filePath = filePath.substring(7); // Remove 'file://' to keep the leading /
       } else if (filePath.startsWith("file://")) {
-        filePath = filePath.substring(7); // Remove 'file://' to get relative path
+        filePath = filePath.substring(7); // Remove 'file://'
       }
 
       // Ensure the path is absolute

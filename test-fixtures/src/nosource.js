@@ -1,2 +1,1 @@
-const x = 1;
-//# sourceMappingURL=nosource.js.map
+var x = 1;
