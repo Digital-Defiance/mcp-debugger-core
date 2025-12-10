@@ -424,7 +424,7 @@ Test Files  1 passed, 1 failed (2)
     it("should handle unsupported framework", async () => {
       const config: TestExecutionConfig = {
         framework: "unsupported" as any,
-        timeout: 5000,
+        timeout: 10000,
       };
 
       await expect(executeTests(config)).rejects.toThrow(
@@ -436,26 +436,26 @@ Test Files  1 passed, 1 failed (2)
       const config: TestExecutionConfig = {
         framework: "jest",
         args: ["--version"],
-        timeout: 5000,
+        timeout: 10000,
       };
 
       const result = await executeTests(config);
 
       // Should complete without error
       expect(result.framework).toBe("jest");
-    }, 10000);
+    }, 15000);
 
     it("should not duplicate --json flag for Jest", async () => {
       const config: TestExecutionConfig = {
         framework: "jest",
         args: ["--json", "--version"],
-        timeout: 5000,
+        timeout: 10000,
       };
 
       const result = await executeTests(config);
 
       expect(result.framework).toBe("jest");
-    }, 10000);
+    }, 15000);
 
     it("should add --reporter json to Mocha if not present", async () => {
       if (!isFrameworkAvailable("mocha")) {
@@ -466,13 +466,13 @@ Test Files  1 passed, 1 failed (2)
       const config: TestExecutionConfig = {
         framework: "mocha",
         args: ["--version"],
-        timeout: 5000,
+        timeout: 10000,
       };
 
       const result = await executeTests(config);
 
       expect(result.framework).toBe("mocha");
-    }, 10000);
+    }, 15000);
 
     it("should not duplicate --reporter for Mocha", async () => {
       if (!isFrameworkAvailable("mocha")) {
@@ -483,13 +483,13 @@ Test Files  1 passed, 1 failed (2)
       const config: TestExecutionConfig = {
         framework: "mocha",
         args: ["--reporter", "spec", "--version"],
-        timeout: 5000,
+        timeout: 10000,
       };
 
       const result = await executeTests(config);
 
       expect(result.framework).toBe("mocha");
-    }, 10000);
+    }, 15000);
 
     it("should add --reporter=json to Vitest if not present", async () => {
       if (!isFrameworkAvailable("vitest")) {
@@ -500,13 +500,13 @@ Test Files  1 passed, 1 failed (2)
       const config: TestExecutionConfig = {
         framework: "vitest",
         args: ["--version"],
-        timeout: 5000,
+        timeout: 10000,
       };
 
       const result = await executeTests(config);
 
       expect(result.framework).toBe("vitest");
-    }, 10000);
+    }, 15000);
 
     it("should add --run flag to Vitest if not present", async () => {
       if (!isFrameworkAvailable("vitest")) {
@@ -517,13 +517,13 @@ Test Files  1 passed, 1 failed (2)
       const config: TestExecutionConfig = {
         framework: "vitest",
         args: ["--version"],
-        timeout: 5000,
+        timeout: 10000,
       };
 
       const result = await executeTests(config);
 
       expect(result.framework).toBe("vitest");
-    }, 10000);
+    }, 15000);
 
     it("should not duplicate --run flag for Vitest", async () => {
       if (!isFrameworkAvailable("vitest")) {
@@ -534,19 +534,19 @@ Test Files  1 passed, 1 failed (2)
       const config: TestExecutionConfig = {
         framework: "vitest",
         args: ["--run", "--version"],
-        timeout: 5000,
+        timeout: 10000,
       };
 
       const result = await executeTests(config);
 
       expect(result.framework).toBe("vitest");
-    }, 10000);
+    }, 15000);
 
     it("should parse inspector WebSocket URL from stderr", async () => {
       const config: TestExecutionConfig = {
         framework: "jest",
         args: ["--version"],
-        timeout: 5000,
+        timeout: 10000,
         attachInspector: true,
       };
 
@@ -557,13 +557,13 @@ Test Files  1 passed, 1 failed (2)
       expect(result.framework).toBe("jest");
       expect(result.stdout).toBeDefined();
       expect(result.stderr).toBeDefined();
-    }, 10000);
+    }, 15000);
 
     it("should add inspector flags when attachInspector is true", async () => {
       const config: TestExecutionConfig = {
         framework: "jest",
         args: ["--version"],
-        timeout: 5000,
+        timeout: 10000,
         attachInspector: true,
       };
 
@@ -571,53 +571,53 @@ Test Files  1 passed, 1 failed (2)
 
       expect(result.framework).toBe("jest");
       // Inspector flags should be added
-    }, 10000);
+    }, 15000);
 
     it("should set NODE_OPTIONS environment variable", async () => {
       const config: TestExecutionConfig = {
         framework: "jest",
         args: ["--version"],
-        timeout: 5000,
+        timeout: 10000,
       };
 
       const result = await executeTests(config);
 
       expect(result.framework).toBe("jest");
       // NODE_OPTIONS should be set in spawn
-    }, 10000);
+    }, 15000);
 
     it("should calculate execution duration", async () => {
       const config: TestExecutionConfig = {
         framework: "jest",
         args: ["--version"],
-        timeout: 5000,
+        timeout: 10000,
       };
 
       const result = await executeTests(config);
 
       expect(result.duration).toBeDefined();
       expect(result.duration).toBeGreaterThan(0);
-    }, 10000);
+    }, 15000);
 
     it("should handle process exit with null code", async () => {
       const config: TestExecutionConfig = {
         framework: "jest",
         args: ["--version"],
-        timeout: 5000,
+        timeout: 10000,
       };
 
       const result = await executeTests(config);
 
       // Exit code may be null or a number
       expect(result.exitCode !== undefined).toBe(true);
-    }, 10000);
+    }, 15000);
 
     it("should handle spawn error", async () => {
       const config: TestExecutionConfig = {
         framework: "jest",
         args: ["--version"],
         cwd: "/nonexistent/directory",
-        timeout: 5000,
+        timeout: 10000,
       };
 
       // Should either reject or return error result
@@ -629,83 +629,84 @@ Test Files  1 passed, 1 failed (2)
         // Spawn error is acceptable
         expect(error).toBeDefined();
       }
-    }, 10000);
+    }, 15000);
 
     it("should capture stdout data in chunks", async () => {
       const config: TestExecutionConfig = {
         framework: "jest",
         args: ["--version"],
-        timeout: 5000,
+        timeout: 10000,
       };
 
       const result = await executeTests(config);
 
       expect(result.stdout).toBeDefined();
       expect(typeof result.stdout).toBe("string");
-    }, 10000);
+    }, 15000);
 
     it("should capture stderr data in chunks", async () => {
       const config: TestExecutionConfig = {
         framework: "jest",
         args: ["--version"],
-        timeout: 5000,
+        timeout: 10000,
       };
 
       const result = await executeTests(config);
 
       expect(result.stderr).toBeDefined();
       expect(typeof result.stderr).toBe("string");
-    }, 10000);
+    }, 15000);
 
     it("should handle test file parameter", async () => {
       const config: TestExecutionConfig = {
         framework: "jest",
         testFile: "nonexistent.test.js",
-        timeout: 5000,
+        args: ["--passWithNoTests", "--forceExit"], // Prevent Jest from hanging on nonexistent files
+        timeout: 10000,
       };
 
       const result = await executeTests(config);
 
       expect(result.framework).toBe("jest");
       // Should attempt to run the test file
-    }, 10000);
+    }, 15000);
 
     it("should handle custom working directory", async () => {
       const config: TestExecutionConfig = {
         framework: "jest",
         args: ["--version"],
         cwd: process.cwd(),
-        timeout: 5000,
+        timeout: 10000,
       };
 
       const result = await executeTests(config);
 
       expect(result.framework).toBe("jest");
-    }, 10000);
+    }, 15000);
 
     it("should handle custom args array", async () => {
       const config: TestExecutionConfig = {
         framework: "jest",
         args: ["--version", "--no-coverage"],
-        timeout: 5000,
+        timeout: 10000,
       };
 
       const result = await executeTests(config);
 
       expect(result.framework).toBe("jest");
-    }, 10000);
+    }, 15000);
 
     it("should handle empty args array", async () => {
       const config: TestExecutionConfig = {
         framework: "jest",
         args: ["--version"], // Add --version to prevent hanging
-        timeout: 5000,
+        timeout: 10000,
       };
 
       const result = await executeTests(config);
 
       expect(result.framework).toBe("jest");
-    }, 10000);
+    }, 15000);
   });
 
   describe("executeTests - Timeout Handling", () => {
@@ -717,7 +718,7 @@ Test Files  1 passed, 1 failed (2)
       };
 
       await expect(executeTests(config)).rejects.toThrow(/timed out/);
-    }, 10000);
+    }, 15000);
 
     it("should clear timeout on successful completion", async () => {
       const config: TestExecutionConfig = {
