@@ -1,8 +1,8 @@
-# MCP Debugger Core - API Documentation
+# MCP ACS Debugger Core - API Documentation
 
 ## Overview
 
-The MCP Debugger Core provides a comprehensive debugging API for Node.js and TypeScript applications. This document describes the core modules, their APIs, and how to use them programmatically.
+The MCP ACS Debugger Core provides a comprehensive debugging API for Node.js and TypeScript applications. This document describes the core modules, their APIs, and how to use them programmatically.
 
 For MCP tool documentation, see [TOOL-REFERENCE.md](../mcp-debugger-server/TOOL-REFERENCE.md) in the mcp-debugger-server package.
 
@@ -39,6 +39,7 @@ const debugger = new DebuggerCore({
 ```
 
 **Configuration Options:**
+
 - `maxSessions` (number): Maximum concurrent debug sessions
 - `defaultTimeout` (number): Default timeout for operations in ms
 - `enableMetrics` (boolean): Enable metrics collection
@@ -78,9 +79,11 @@ await sessionManager.cleanupSession(sessionId);
 **API Methods:**
 
 #### `createSession(options: SessionOptions): Promise<DebugSession>`
+
 Creates a new debug session.
 
 **Parameters:**
+
 - `command` (string): Command to execute
 - `args` (string[]): Command arguments
 - `cwd` (string): Working directory
@@ -90,12 +93,15 @@ Creates a new debug session.
 **Returns:** Promise<DebugSession>
 
 #### `getSession(sessionId: string): DebugSession | undefined`
+
 Retrieves a session by ID.
 
 #### `listSessions(): DebugSession[]`
+
 Lists all active sessions.
 
 #### `cleanupSession(sessionId: string): Promise<void>`
+
 Cleans up and removes a session.
 
 ---
@@ -131,9 +137,11 @@ await bpManager.toggleBreakpoint(bp.id);
 **API Methods:**
 
 #### `setBreakpoint(options: BreakpointOptions): Promise<Breakpoint>`
+
 Sets a new breakpoint.
 
 **Parameters:**
+
 - `file` (string): Absolute file path
 - `line` (number): Line number (1-indexed)
 - `condition` (string, optional): Conditional expression
@@ -143,12 +151,15 @@ Sets a new breakpoint.
 **Returns:** Promise<Breakpoint>
 
 #### `listBreakpoints(): Breakpoint[]`
+
 Lists all breakpoints.
 
 #### `removeBreakpoint(id: string): Promise<void>`
+
 Removes a breakpoint.
 
 #### `toggleBreakpoint(id: string): Promise<void>`
+
 Toggles breakpoint enabled/disabled state.
 
 ---
@@ -179,18 +190,23 @@ await session.pause();
 **API Methods:**
 
 #### `continue(): Promise<void>`
+
 Resumes execution until next breakpoint or completion.
 
 #### `stepOver(): Promise<ExecutionLocation>`
+
 Steps over the current line.
 
 #### `stepInto(): Promise<ExecutionLocation>`
+
 Steps into function calls.
 
 #### `stepOut(): Promise<ExecutionLocation>`
+
 Steps out of current function.
 
 #### `pause(): Promise<ExecutionLocation>`
+
 Pauses execution at current location.
 
 ---
@@ -222,23 +238,29 @@ const props = await inspector.inspectObject(objectRef, { depth: 2 });
 **API Methods:**
 
 #### `getLocalVariables(): Promise<Variable[]>`
+
 Gets all local variables in current scope.
 
 #### `getGlobalVariables(): Promise<Variable[]>`
+
 Gets accessible global variables.
 
 #### `evaluateExpression(expression: string): Promise<EvaluationResult>`
+
 Evaluates a JavaScript expression.
 
 **Parameters:**
+
 - `expression` (string): JavaScript expression to evaluate
 
 **Returns:** Promise<EvaluationResult>
 
 #### `inspectObject(objectRef: string, options?: InspectOptions): Promise<ObjectProperties>`
+
 Inspects an object's properties.
 
 **Parameters:**
+
 - `objectRef` (string): Object reference ID
 - `options.depth` (number): Maximum depth to inspect
 - `options.maxProperties` (number): Maximum properties to return
@@ -604,26 +626,31 @@ interface CallFrame {
 ## Best Practices
 
 ### 1. Session Management
+
 - Always clean up sessions when done
 - Use appropriate timeouts
 - Handle session crashes gracefully
 
 ### 2. Breakpoint Management
+
 - Use absolute file paths
 - Validate breakpoint locations
 - Clean up breakpoints before session end
 
 ### 3. Error Handling
+
 - Always catch and handle errors
 - Check error codes for specific handling
 - Log errors with context
 
 ### 4. Performance
+
 - Limit object inspection depth
 - Use conditional breakpoints wisely
 - Clean up resources promptly
 
 ### 5. Security
+
 - Validate all user input
 - Use authentication in production
 - Enable rate limiting

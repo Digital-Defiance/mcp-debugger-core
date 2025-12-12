@@ -1,23 +1,23 @@
 /**
- * Chaos Testing Suite for MCP Debugger
+ * Chaos Testing Suite for MCP ACS Debugger
  * Tests system resilience under failure conditions
  */
 
-import { DebugSession } from './debug-session';
-import { SessionManager } from './session-manager';
-import { InspectorClient } from './inspector-client';
-import * as path from 'path';
-import * as fs from 'fs';
+import { DebugSession } from "./debug-session";
+import { SessionManager } from "./session-manager";
+import { InspectorClient } from "./inspector-client";
+import * as path from "path";
+import * as fs from "fs";
 
-describe('Chaos Testing', () => {
+describe("Chaos Testing", () => {
   let sessionManager: SessionManager;
   const testFixturePath = path.join(
     __dirname,
-    '../../test-fixtures/simple-script.js',
+    "../../test-fixtures/simple-script.js"
   );
   const crashFixturePath = path.join(
     __dirname,
-    '../../test-fixtures/crash-script.js',
+    "../../test-fixtures/crash-script.js"
   );
 
   beforeAll(() => {
@@ -36,7 +36,7 @@ setTimeout(() => {
   console.log('Test complete');
   process.exit(0);
 }, 1000);
-      `.trim(),
+      `.trim()
       );
     }
 
@@ -53,7 +53,7 @@ process.nextTick(() => {
   console.error('Intentional crash');
   process.exit(1);
 });
-      `.trim(),
+      `.trim()
     );
   });
 
@@ -71,14 +71,14 @@ process.nextTick(() => {
         } catch (error) {
           // Ignore cleanup errors
         }
-      }),
+      })
     );
   });
 
-  describe('Process Crash Handling', () => {
-    it('should detect and handle process crash gracefully', async () => {
+  describe("Process Crash Handling", () => {
+    it("should detect and handle process crash gracefully", async () => {
       const session = await sessionManager.createSession({
-        command: 'node',
+        command: "node",
         args: [crashFixturePath],
         cwd: process.cwd(),
       });
@@ -91,7 +91,7 @@ process.nextTick(() => {
         code: number | null;
         signal: string | null;
       }>((resolve) => {
-        proc?.once('exit', (code, signal) => resolve({ code, signal }));
+        proc?.once("exit", (code, signal) => resolve({ code, signal }));
       });
 
       // Wait for session to be fully initialized and paused
@@ -114,7 +114,7 @@ process.nextTick(() => {
         // Process didn't exit within timeout - this is the actual bug we're testing
         // In production, crash detection would handle this
         console.log(
-          'Process did not exit within timeout - testing crash detection',
+          "Process did not exit within timeout - testing crash detection"
         );
 
         // Verify the process is still running (which is the issue)
@@ -128,18 +128,18 @@ process.nextTick(() => {
 
       // Cleanup should work even after crash
       await expect(
-        sessionManager.removeSession(session.id),
+        sessionManager.removeSession(session.id)
       ).resolves.not.toThrow();
     }, 12000);
 
-    it('should handle multiple simultaneous crashes', async () => {
+    it("should handle multiple simultaneous crashes", async () => {
       const sessionCount = 5;
       const sessions: DebugSession[] = [];
 
       // Create multiple sessions that will crash
       for (let i = 0; i < sessionCount; i++) {
         const session = await sessionManager.createSession({
-          command: 'node',
+          command: "node",
           args: [crashFixturePath],
           cwd: process.cwd(),
         });
@@ -153,7 +153,7 @@ process.nextTick(() => {
       await Promise.all(
         sessions.map(async (session) => {
           await session.resume();
-        }),
+        })
       );
 
       // Wait for all to crash
@@ -171,22 +171,22 @@ process.nextTick(() => {
 
       // Cleanup should work for all
       await Promise.all(
-        sessions.map((session) => sessionManager.removeSession(session.id)),
+        sessions.map((session) => sessionManager.removeSession(session.id))
       );
 
       expect(sessionManager.getAllSessions().length).toBe(0);
     }, 25000);
 
-    it('should handle process killed by signal', async () => {
+    it("should handle process killed by signal", async () => {
       const session = await sessionManager.createSession({
-        command: 'node',
+        command: "node",
         args: [testFixturePath],
         cwd: process.cwd(),
       });
 
       // Kill the process with SIGKILL
       const proc = session.getProcess();
-      proc?.kill('SIGKILL');
+      proc?.kill("SIGKILL");
 
       // Wait for kill to take effect
       await new Promise((resolve) => setTimeout(resolve, 500));
@@ -196,15 +196,15 @@ process.nextTick(() => {
 
       // Cleanup should handle killed process
       await expect(
-        sessionManager.removeSession(session.id),
+        sessionManager.removeSession(session.id)
       ).resolves.not.toThrow();
     }, 10000);
   });
 
-  describe('Network Disconnection Simulation', () => {
-    it('should handle inspector connection loss', async () => {
+  describe("Network Disconnection Simulation", () => {
+    it("should handle inspector connection loss", async () => {
       const session = await sessionManager.createSession({
-        command: 'node',
+        command: "node",
         args: [testFixturePath],
         cwd: process.cwd(),
       });
@@ -219,13 +219,13 @@ process.nextTick(() => {
 
       // System should handle this gracefully
       await expect(
-        sessionManager.removeSession(session.id),
+        sessionManager.removeSession(session.id)
       ).resolves.not.toThrow();
     }, 10000);
 
-    it('should handle reconnection attempts after disconnect', async () => {
+    it("should handle reconnection attempts after disconnect", async () => {
       const session = await sessionManager.createSession({
-        command: 'node',
+        command: "node",
         args: [testFixturePath],
         cwd: process.cwd(),
       });
@@ -246,15 +246,15 @@ process.nextTick(() => {
 
       // Cleanup should still work
       await expect(
-        sessionManager.removeSession(session.id),
+        sessionManager.removeSession(session.id)
       ).resolves.not.toThrow();
     }, 10000);
   });
 
-  describe('CDP Protocol Error Handling', () => {
-    it('should handle invalid CDP commands gracefully', async () => {
+  describe("CDP Protocol Error Handling", () => {
+    it("should handle invalid CDP commands gracefully", async () => {
       const session = await sessionManager.createSession({
-        command: 'node',
+        command: "node",
         args: [testFixturePath],
         cwd: process.cwd(),
       });
@@ -262,7 +262,7 @@ process.nextTick(() => {
       // Try to send invalid command
       try {
         if (session.inspector) {
-          await (session.inspector as any).send('Invalid.Command', {});
+          await (session.inspector as any).send("Invalid.Command", {});
         }
       } catch (error) {
         expect(error).toBeDefined();
@@ -273,13 +273,13 @@ process.nextTick(() => {
 
       // Cleanup should work
       await expect(
-        sessionManager.removeSession(session.id),
+        sessionManager.removeSession(session.id)
       ).resolves.not.toThrow();
     }, 10000);
 
-    it('should handle CDP timeout errors', async () => {
+    it("should handle CDP timeout errors", async () => {
       const session = await sessionManager.createSession({
-        command: 'node',
+        command: "node",
         args: [testFixturePath],
         cwd: process.cwd(),
       });
@@ -304,15 +304,15 @@ process.nextTick(() => {
 
       // Cleanup should work
       await expect(
-        sessionManager.removeSession(session.id),
+        sessionManager.removeSession(session.id)
       ).resolves.not.toThrow();
     }, 10000);
   });
 
-  describe('Resource Exhaustion Scenarios', () => {
-    it('should handle excessive breakpoint creation', async () => {
+  describe("Resource Exhaustion Scenarios", () => {
+    it("should handle excessive breakpoint creation", async () => {
       const session = await sessionManager.createSession({
-        command: 'node',
+        command: "node",
         args: [testFixturePath],
         cwd: process.cwd(),
       });
@@ -321,16 +321,16 @@ process.nextTick(() => {
       const breakpointCount = 100;
       const results = await Promise.allSettled(
         Array.from({ length: breakpointCount }, (_, i) =>
-          session.setBreakpoint(testFixturePath, i + 1),
-        ),
+          session.setBreakpoint(testFixturePath, i + 1)
+        )
       );
 
       // Some may succeed, some may fail, but system should not crash
-      const succeeded = results.filter((r) => r.status === 'fulfilled').length;
-      const failed = results.filter((r) => r.status === 'rejected').length;
+      const succeeded = results.filter((r) => r.status === "fulfilled").length;
+      const failed = results.filter((r) => r.status === "rejected").length;
 
       console.log(
-        `Breakpoint creation: ${succeeded} succeeded, ${failed} failed`,
+        `Breakpoint creation: ${succeeded} succeeded, ${failed} failed`
       );
 
       // System should still be functional
@@ -338,13 +338,13 @@ process.nextTick(() => {
 
       // Cleanup should work
       await expect(
-        sessionManager.removeSession(session.id),
+        sessionManager.removeSession(session.id)
       ).resolves.not.toThrow();
     }, 30000);
 
-    it('should handle rapid operation requests', async () => {
+    it("should handle rapid operation requests", async () => {
       const session = await sessionManager.createSession({
-        command: 'node',
+        command: "node",
         args: [testFixturePath],
         cwd: process.cwd(),
       });
@@ -366,21 +366,21 @@ process.nextTick(() => {
 
       // Cleanup should work
       await expect(
-        sessionManager.removeSession(session.id),
+        sessionManager.removeSession(session.id)
       ).resolves.not.toThrow();
     }, 30000);
   });
 
-  describe('Graceful Degradation', () => {
-    it('should continue operating when some sessions fail', async () => {
+  describe("Graceful Degradation", () => {
+    it("should continue operating when some sessions fail", async () => {
       const goodSession = await sessionManager.createSession({
-        command: 'node',
+        command: "node",
         args: [testFixturePath],
         cwd: process.cwd(),
       });
 
       const badSession = await sessionManager.createSession({
-        command: 'node',
+        command: "node",
         args: [crashFixturePath],
         cwd: process.cwd(),
       });
@@ -399,9 +399,9 @@ process.nextTick(() => {
       expect(sessionManager.getAllSessions().length).toBe(0);
     }, 15000);
 
-    it('should recover from temporary failures', async () => {
+    it("should recover from temporary failures", async () => {
       const session = await sessionManager.createSession({
-        command: 'node',
+        command: "node",
         args: [testFixturePath],
         cwd: process.cwd(),
       });
@@ -422,7 +422,7 @@ process.nextTick(() => {
 
       // Cleanup should still work
       await expect(
-        sessionManager.removeSession(session.id),
+        sessionManager.removeSession(session.id)
       ).resolves.not.toThrow();
     }, 10000);
   });

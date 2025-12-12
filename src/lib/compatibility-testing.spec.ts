@@ -1,23 +1,23 @@
 /**
- * Compatibility Testing Suite for MCP Debugger
+ * Compatibility Testing Suite for MCP ACS Debugger
  * Tests compatibility across different Node.js versions, TypeScript versions, and platforms
  */
 
-import { SessionManager } from './session-manager';
-import { DebugSession } from './debug-session';
-import * as path from 'path';
-import * as fs from 'fs';
-import { execSync } from 'child_process';
+import { SessionManager } from "./session-manager";
+import { DebugSession } from "./debug-session";
+import * as path from "path";
+import * as fs from "fs";
+import { execSync } from "child_process";
 
-describe('Compatibility Testing', () => {
+describe("Compatibility Testing", () => {
   let sessionManager: SessionManager;
   const testFixturePath = path.join(
     __dirname,
-    '../../test-fixtures/simple-script.js',
+    "../../test-fixtures/simple-script.js"
   );
   const tsFixturePath = path.join(
     __dirname,
-    '../../test-fixtures/typescript-sample.ts',
+    "../../test-fixtures/typescript-sample.ts"
   );
 
   beforeAll(() => {
@@ -39,7 +39,7 @@ for (let i = 0; i < 10; i++) {
 }
 console.log('Sum:', sum);
 process.exit(0);
-      `.trim(),
+      `.trim()
       );
     }
 
@@ -59,7 +59,7 @@ const person: Person = {
 
 console.log('Person:', person);
 process.exit(0);
-      `.trim(),
+      `.trim()
       );
     }
   });
@@ -77,17 +77,17 @@ process.exit(0);
         } catch (error) {
           // Ignore cleanup errors
         }
-      }),
+      })
     );
   });
 
-  describe('Node.js Version Compatibility', () => {
-    it('should work with current Node.js version', async () => {
+  describe("Node.js Version Compatibility", () => {
+    it("should work with current Node.js version", async () => {
       const nodeVersion = process.version;
       console.log(`Testing with Node.js ${nodeVersion}`);
 
       const session = await sessionManager.createSession({
-        command: 'node',
+        command: "node",
         args: [testFixturePath],
         cwd: process.cwd(),
       });
@@ -102,9 +102,9 @@ process.exit(0);
       await sessionManager.removeSession(session.id);
     }, 15000);
 
-    it('should detect Node.js version and report compatibility', () => {
+    it("should detect Node.js version and report compatibility", () => {
       const nodeVersion = process.version;
-      const majorVersion = parseInt(nodeVersion.split('.')[0].substring(1));
+      const majorVersion = parseInt(nodeVersion.split(".")[0].substring(1));
 
       console.log(`Node.js version: ${nodeVersion}`);
       console.log(`Major version: ${majorVersion}`);
@@ -123,42 +123,44 @@ process.exit(0);
       };
 
       console.log(
-        'Compatibility status:',
-        JSON.stringify(compatibilityStatus, null, 2),
+        "Compatibility status:",
+        JSON.stringify(compatibilityStatus, null, 2)
       );
       expect(compatibilityStatus.supported).toBe(true);
     });
   });
 
-  describe('TypeScript Compatibility', () => {
-    it('should work with TypeScript files', async () => {
+  describe("TypeScript Compatibility", () => {
+    it("should work with TypeScript files", async () => {
       // Check if TypeScript is available
       let tsVersion: string;
       try {
-        tsVersion = execSync('npx tsc --version', { encoding: 'utf8' }).trim();
+        tsVersion = execSync("npx tsc --version", { encoding: "utf8" }).trim();
         console.log(`Testing with ${tsVersion}`);
       } catch (error) {
-        console.log('TypeScript not available, skipping test');
+        console.log("TypeScript not available, skipping test");
         return;
       }
 
       // Compile TypeScript file
-      const jsOutputPath = tsFixturePath.replace('.ts', '.js');
+      const jsOutputPath = tsFixturePath.replace(".ts", ".js");
       try {
         execSync(
-          `npx tsc ${tsFixturePath} --outDir ${path.dirname(jsOutputPath)} --sourceMap`,
+          `npx tsc ${tsFixturePath} --outDir ${path.dirname(
+            jsOutputPath
+          )} --sourceMap`,
           {
-            encoding: 'utf8',
-          },
+            encoding: "utf8",
+          }
         );
       } catch (error) {
-        console.log('TypeScript compilation failed, skipping test');
+        console.log("TypeScript compilation failed, skipping test");
         return;
       }
 
       // Test debugging the compiled file
       const session = await sessionManager.createSession({
-        command: 'node',
+        command: "node",
         args: [jsOutputPath],
         cwd: process.cwd(),
       });
@@ -171,18 +173,18 @@ process.exit(0);
       if (fs.existsSync(jsOutputPath)) {
         fs.unlinkSync(jsOutputPath);
       }
-      const mapPath = jsOutputPath + '.map';
+      const mapPath = jsOutputPath + ".map";
       if (fs.existsSync(mapPath)) {
         fs.unlinkSync(mapPath);
       }
     }, 30000);
 
-    it('should detect TypeScript version and report compatibility', () => {
+    it("should detect TypeScript version and report compatibility", () => {
       let tsVersion: string;
       try {
-        tsVersion = execSync('npx tsc --version', { encoding: 'utf8' }).trim();
+        tsVersion = execSync("npx tsc --version", { encoding: "utf8" }).trim();
       } catch (error) {
-        console.log('TypeScript not available');
+        console.log("TypeScript not available");
         return;
       }
 
@@ -204,31 +206,31 @@ process.exit(0);
         };
 
         console.log(
-          'TypeScript compatibility:',
-          JSON.stringify(compatibilityStatus, null, 2),
+          "TypeScript compatibility:",
+          JSON.stringify(compatibilityStatus, null, 2)
         );
         expect(compatibilityStatus.supported).toBe(true);
       }
     });
   });
 
-  describe('Test Framework Compatibility', () => {
-    it('should work with Jest', async () => {
+  describe("Test Framework Compatibility", () => {
+    it("should work with Jest", async () => {
       // Check if Jest is available
       try {
-        const jestVersion = execSync('npx jest --version', {
-          encoding: 'utf8',
+        const jestVersion = execSync("npx jest --version", {
+          encoding: "utf8",
         }).trim();
         console.log(`Jest version: ${jestVersion}`);
       } catch (error) {
-        console.log('Jest not available, skipping test');
+        console.log("Jest not available, skipping test");
         return;
       }
 
       // Create a simple Jest test file
       const jestTestPath = path.join(
         __dirname,
-        '../../test-fixtures/jest-test.js',
+        "../../test-fixtures/jest-test.js"
       );
       fs.writeFileSync(
         jestTestPath,
@@ -236,15 +238,15 @@ process.exit(0);
 test('simple test', () => {
   expect(1 + 1).toBe(2);
 });
-      `.trim(),
+      `.trim()
       );
 
       // Test debugging Jest
       // Note: This test can be flaky if Jest exits too quickly
       try {
         const session = await sessionManager.createSession({
-          command: 'npx',
-          args: ['jest', jestTestPath, '--runInBand', '--no-coverage'],
+          command: "npx",
+          args: ["jest", jestTestPath, "--runInBand", "--no-coverage"],
           cwd: process.cwd(),
         });
 
@@ -254,7 +256,7 @@ test('simple test', () => {
         // Jest might exit too quickly for inspector to attach
         // This is expected behavior for very fast tests
         console.log(
-          'Jest exited before inspector attached (expected for fast tests)',
+          "Jest exited before inspector attached (expected for fast tests)"
         );
         expect(error).toBeDefined();
       }
@@ -265,7 +267,7 @@ test('simple test', () => {
       }
     }, 30000);
 
-    it('should detect available test frameworks', () => {
+    it("should detect available test frameworks", () => {
       const frameworks = {
         jest: false,
         mocha: false,
@@ -274,7 +276,7 @@ test('simple test', () => {
 
       // Check Jest
       try {
-        execSync('npx jest --version', { encoding: 'utf8' });
+        execSync("npx jest --version", { encoding: "utf8" });
         frameworks.jest = true;
       } catch (error) {
         // Not available
@@ -282,7 +284,7 @@ test('simple test', () => {
 
       // Check Mocha
       try {
-        execSync('npx mocha --version', { encoding: 'utf8' });
+        execSync("npx mocha --version", { encoding: "utf8" });
         frameworks.mocha = true;
       } catch (error) {
         // Not available
@@ -290,33 +292,33 @@ test('simple test', () => {
 
       // Check Vitest
       try {
-        execSync('npx vitest --version', { encoding: 'utf8' });
+        execSync("npx vitest --version", { encoding: "utf8" });
         frameworks.vitest = true;
       } catch (error) {
         // Not available
       }
 
       console.log(
-        'Available test frameworks:',
-        JSON.stringify(frameworks, null, 2),
+        "Available test frameworks:",
+        JSON.stringify(frameworks, null, 2)
       );
 
       // At least one should be available
       expect(frameworks.jest || frameworks.mocha || frameworks.vitest).toBe(
-        true,
+        true
       );
     });
   });
 
-  describe('Platform Compatibility', () => {
-    it('should work on current platform', async () => {
+  describe("Platform Compatibility", () => {
+    it("should work on current platform", async () => {
       const platform = process.platform;
       const arch = process.arch;
 
       console.log(`Testing on platform: ${platform} (${arch})`);
 
       const session = await sessionManager.createSession({
-        command: 'node',
+        command: "node",
         args: [testFixturePath],
         cwd: process.cwd(),
       });
@@ -326,23 +328,23 @@ test('simple test', () => {
       await sessionManager.removeSession(session.id);
     }, 15000);
 
-    it('should report platform compatibility', () => {
+    it("should report platform compatibility", () => {
       const platformInfo = {
         platform: process.platform,
         arch: process.arch,
         nodeVersion: process.version,
-        supported: ['linux', 'darwin', 'win32'].includes(process.platform),
+        supported: ["linux", "darwin", "win32"].includes(process.platform),
         inspectorSupport: true, // All modern platforms support inspector
       };
 
-      console.log('Platform info:', JSON.stringify(platformInfo, null, 2));
+      console.log("Platform info:", JSON.stringify(platformInfo, null, 2));
 
       expect(platformInfo.supported).toBe(true);
     });
 
-    it('should handle platform-specific path separators', () => {
-      const testPath = path.join('test', 'fixtures', 'file.js');
-      const expectedSeparator = process.platform === 'win32' ? '\\' : '/';
+    it("should handle platform-specific path separators", () => {
+      const testPath = path.join("test", "fixtures", "file.js");
+      const expectedSeparator = process.platform === "win32" ? "\\" : "/";
 
       console.log(`Test path: ${testPath}`);
       console.log(`Expected separator: ${expectedSeparator}`);
@@ -351,11 +353,11 @@ test('simple test', () => {
     });
   });
 
-  describe('Feature Detection', () => {
-    it('should detect inspector protocol support', () => {
+  describe("Feature Detection", () => {
+    it("should detect inspector protocol support", () => {
       const inspectorSupport = {
         available:
-          typeof (global as any).inspector !== 'undefined' ||
+          typeof (global as any).inspector !== "undefined" ||
           !!process.versions.node,
         version: process.version,
         features: {
@@ -367,38 +369,38 @@ test('simple test', () => {
       };
 
       console.log(
-        'Inspector support:',
-        JSON.stringify(inspectorSupport, null, 2),
+        "Inspector support:",
+        JSON.stringify(inspectorSupport, null, 2)
       );
       expect(inspectorSupport.available).toBe(true);
     });
 
-    it('should detect source map support', () => {
+    it("should detect source map support", () => {
       const sourceMapSupport = {
-        nodeFlag: process.execArgv.includes('--enable-source-maps'),
+        nodeFlag: process.execArgv.includes("--enable-source-maps"),
         available: true, // Modern Node.js versions support source maps
       };
 
       console.log(
-        'Source map support:',
-        JSON.stringify(sourceMapSupport, null, 2),
+        "Source map support:",
+        JSON.stringify(sourceMapSupport, null, 2)
       );
       expect(sourceMapSupport.available).toBe(true);
     });
 
-    it('should detect WebSocket support', () => {
+    it("should detect WebSocket support", () => {
       const wsSupport = {
         available: true, // ws package is a dependency
-        version: require('ws/package.json').version,
+        version: require("ws/package.json").version,
       };
 
-      console.log('WebSocket support:', JSON.stringify(wsSupport, null, 2));
+      console.log("WebSocket support:", JSON.stringify(wsSupport, null, 2));
       expect(wsSupport.available).toBe(true);
     });
   });
 
-  describe('Cross-Version Compatibility Matrix', () => {
-    it('should generate compatibility report', () => {
+  describe("Cross-Version Compatibility Matrix", () => {
+    it("should generate compatibility report", () => {
       const compatibilityReport = {
         environment: {
           nodeVersion: process.version,
@@ -424,21 +426,21 @@ test('simple test', () => {
 
       // Detect test frameworks
       try {
-        execSync('npx jest --version', { encoding: 'utf8' });
+        execSync("npx jest --version", { encoding: "utf8" });
         compatibilityReport.testFrameworks.jest = true;
       } catch (error) {
         // Not available
       }
 
       try {
-        execSync('npx mocha --version', { encoding: 'utf8' });
+        execSync("npx mocha --version", { encoding: "utf8" });
         compatibilityReport.testFrameworks.mocha = true;
       } catch (error) {
         // Not available
       }
 
       try {
-        execSync('npx vitest --version', { encoding: 'utf8' });
+        execSync("npx vitest --version", { encoding: "utf8" });
         compatibilityReport.testFrameworks.vitest = true;
       } catch (error) {
         // Not available
@@ -446,8 +448,8 @@ test('simple test', () => {
 
       // Detect TypeScript
       try {
-        const tsVersion = execSync('npx tsc --version', {
-          encoding: 'utf8',
+        const tsVersion = execSync("npx tsc --version", {
+          encoding: "utf8",
         }).trim();
         compatibilityReport.typescript.available = true;
         compatibilityReport.typescript.version = tsVersion;
@@ -455,7 +457,7 @@ test('simple test', () => {
         // Not available
       }
 
-      console.log('Compatibility Report:');
+      console.log("Compatibility Report:");
       console.log(JSON.stringify(compatibilityReport, null, 2));
 
       // Verify minimum requirements

@@ -2,7 +2,7 @@
 
 ## Overview
 
-The MCP Debugger Core uses a comprehensive testing strategy combining unit tests, integration tests, property-based tests, and enterprise-grade testing suites. This document describes our testing approach, how to run tests, and how to write new tests.
+The MCP ACS Debugger Core uses a comprehensive testing strategy combining unit tests, integration tests, property-based tests, and enterprise-grade testing suites. This document describes our testing approach, how to run tests, and how to write new tests.
 
 ---
 
@@ -120,6 +120,7 @@ yarn test src/lib/security-testing.spec.ts
 Test individual components in isolation.
 
 **Example:**
+
 ```typescript
 describe('BreakpointManager', () => {
   let manager: BreakpointManager;
@@ -154,6 +155,7 @@ describe('BreakpointManager', () => {
 Test component interactions with real dependencies.
 
 **Example:**
+
 ```typescript
 describe('DebugSession Integration', () => {
   let session: DebugSession;
@@ -188,6 +190,7 @@ describe('DebugSession Integration', () => {
 Test universal properties across many generated inputs.
 
 **Example:**
+
 ```typescript
 import fc from 'fast-check';
 
@@ -222,6 +225,7 @@ describe('BreakpointManager Properties', () => {
 Test system under high concurrent load.
 
 **Example:**
+
 ```typescript
 describe('Load Testing', () => {
   it('should handle 100 concurrent debug sessions', async () => {
@@ -248,6 +252,7 @@ describe('Load Testing', () => {
 Test system resilience to random failures.
 
 **Example:**
+
 ```typescript
 describe('Chaos Testing', () => {
   it('should handle random process crashes', async () => {
@@ -270,6 +275,7 @@ describe('Chaos Testing', () => {
 Test security features.
 
 **Example:**
+
 ```typescript
 describe('Security Testing', () => {
   it('should mask PII in variable inspection', async () => {
@@ -324,6 +330,7 @@ it('should do something', () => {
 ### Best Practices
 
 1. **One assertion per test** (when possible)
+
    ```typescript
    // Good
    it('should set file path', () => {
@@ -347,6 +354,7 @@ it('should do something', () => {
    ```
 
 2. **Use descriptive test names**
+
    ```typescript
    // Good
    it('should throw error when file path is empty', () => { ... });
@@ -356,6 +364,7 @@ it('should do something', () => {
    ```
 
 3. **Clean up resources**
+
    ```typescript
    afterEach(async () => {
      await session?.cleanup();
@@ -364,12 +373,14 @@ it('should do something', () => {
    ```
 
 4. **Use test fixtures**
+
    ```typescript
    const FIXTURES_DIR = path.join(__dirname, '../test-fixtures');
    const SIMPLE_SCRIPT = path.join(FIXTURES_DIR, 'simple-script.js');
    ```
 
 5. **Mock external dependencies**
+
    ```typescript
    jest.mock('ws', () => ({
      WebSocket: MockWebSocket
@@ -379,6 +390,7 @@ it('should do something', () => {
 ### Property-Based Test Guidelines
 
 1. **Tag with property reference**
+
    ```typescript
    // Feature: mcp-debugger-tool, Property 1: Breakpoint creation and retrieval consistency
    it('Property: created breakpoints can be retrieved', () => {
@@ -387,6 +399,7 @@ it('should do something', () => {
    ```
 
 2. **Run 100+ iterations**
+
    ```typescript
    fc.assert(
      fc.property(...),
@@ -395,6 +408,7 @@ it('should do something', () => {
    ```
 
 3. **Use appropriate generators**
+
    ```typescript
    // Good - constrained to valid inputs
    fc.integer({ min: 1, max: 10000 })
@@ -404,6 +418,7 @@ it('should do something', () => {
    ```
 
 4. **Handle edge cases in generators**
+
    ```typescript
    const validFilePath = fc.string().filter(s => s.length > 0 && !s.includes('\0'));
    ```
@@ -451,12 +466,14 @@ Coverage reports are generated in multiple formats:
 ### Improving Coverage
 
 1. **Identify uncovered code**
+
    ```bash
    yarn test:coverage
    # Look for red/yellow lines in HTML report
    ```
 
 2. **Write tests for uncovered paths**
+
    ```typescript
    // Cover error path
    it('should handle invalid input', () => {
@@ -466,6 +483,7 @@ Coverage reports are generated in multiple formats:
    ```
 
 3. **Test edge cases**
+
    ```typescript
    it('should handle empty breakpoint list', () => {
      const breakpoints = manager.listBreakpoints();
@@ -480,6 +498,7 @@ Coverage reports are generated in multiple formats:
 ### GitHub Actions
 
 Tests run automatically on:
+
 - Push to main branch
 - Pull requests
 - Scheduled nightly builds
@@ -518,6 +537,7 @@ yarn test --maxWorkers=2 --testPathPattern="src/lib/[n-z]"
 **Problem:** Tests hang or timeout
 
 **Solution:**
+
 ```typescript
 // Increase timeout for slow tests
 it('should handle long operation', async () => {
@@ -533,6 +553,7 @@ jest.setTimeout(30000);
 **Problem:** WebSocket tests fail with connection errors
 
 **Solution:**
+
 ```typescript
 // Use mock WebSocket
 import { MockWebSocket } from '../test-utils/mock-websocket';
@@ -547,6 +568,7 @@ jest.mock('ws', () => ({
 **Problem:** Child processes remain after tests
 
 **Solution:**
+
 ```typescript
 afterEach(async () => {
   // Always cleanup
@@ -564,6 +586,7 @@ afterEach(async () => {
 **Problem:** Tests pass/fail randomly
 
 **Solution:**
+
 ```typescript
 // Add retries for flaky tests
 jest.retryTimes(3);
@@ -579,6 +602,7 @@ await waitFor(() => {
 **Problem:** Coverage reports missing
 
 **Solution:**
+
 ```bash
 # Clean coverage directory
 rm -rf coverage
@@ -659,6 +683,7 @@ yarn test src/lib/performance-benchmarks.spec.ts
 ```
 
 **Benchmark Targets:**
+
 - Breakpoint set/remove: < 10ms
 - Variable inspection: < 50ms
 - Session creation: < 500ms

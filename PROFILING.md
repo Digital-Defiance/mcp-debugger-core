@@ -1,10 +1,11 @@
 # Performance Profiling Features
 
-This document describes the performance profiling features added to the MCP Debugger Tool.
+This document describes the performance profiling features added to the MCP ACS Debugger Tool.
 
 ## Overview
 
 The profiling features enable comprehensive performance analysis of Node.js applications, including:
+
 - CPU profiling with bottleneck detection
 - Memory profiling with heap snapshots and leak detection
 - Performance timeline tracking
@@ -25,6 +26,7 @@ The CPU profiler captures detailed CPU usage data and provides analysis capabili
 - **Profile Analysis**: Calculate self-time and total time for each function
 
 **Key Methods**:
+
 ```typescript
 await session.startCPUProfile();
 const profile = await session.stopCPUProfile();
@@ -32,6 +34,7 @@ const analysis = session.analyzeCPUProfile(profile);
 ```
 
 **Analysis Output**:
+
 - Total execution time
 - Top functions by self-time
 - Bottlenecks with impact percentage
@@ -50,6 +53,7 @@ The memory profiler provides heap analysis and leak detection:
 - **Garbage Collection**: Trigger GC and track allocation patterns
 
 **Key Methods**:
+
 ```typescript
 const snapshot = await session.takeHeapSnapshot();
 const memoryUsage = await session.getMemoryUsage();
@@ -58,6 +62,7 @@ const report = await session.generateMemoryReport();
 ```
 
 **Memory Report Includes**:
+
 - Total and used heap size
 - Heap usage percentage
 - Top object types by size and count
@@ -75,12 +80,14 @@ The performance timeline records execution events for detailed analysis:
 - **GC Statistics**: Track garbage collection frequency and duration
 
 **Key Methods**:
+
 ```typescript
 await session.startPerformanceRecording();
 const report = await session.stopPerformanceRecording();
 ```
 
 **Performance Report Includes**:
+
 - Total duration
 - Event count and types
 - Slow operations (>100ms)
@@ -94,44 +101,55 @@ const report = await session.stopPerformanceRecording();
 Four new MCP tools enable AI agents to perform profiling operations:
 
 #### debugger_start_cpu_profile
+
 Start CPU profiling for a debug session.
 
 **Parameters**:
+
 - `sessionId`: Debug session identifier
 
 **Returns**: Success status
 
 #### debugger_stop_cpu_profile
+
 Stop CPU profiling and return analysis.
 
 **Parameters**:
+
 - `sessionId`: Debug session identifier
 
 **Returns**:
+
 - Profile summary (duration, node count, sample count)
 - Analysis with top functions and bottlenecks
 - Formatted analysis text
 
 #### debugger_take_heap_snapshot
+
 Take a heap snapshot and generate memory report.
 
 **Parameters**:
+
 - `sessionId`: Debug session identifier
 
 **Returns**:
+
 - Snapshot summary (node count, edge count)
 - Memory report with heap usage and top object types
 - Formatted report text
 
 #### debugger_get_performance_metrics
+
 Get comprehensive performance metrics.
 
 **Parameters**:
+
 - `sessionId`: Debug session identifier
 - `includeLeakDetection`: Optional, run leak detection (takes 10s)
 - `includePerformanceTimeline`: Optional, include timeline data
 
 **Returns**:
+
 - Current memory usage
 - Optional leak detection results
 - Optional performance timeline data
@@ -256,9 +274,11 @@ console.log('Top functions:', report.functionTimings);
 ## Integration Tests
 
 Comprehensive integration tests are provided in:
+
 - `packages/debugger-core/src/lib/profiling.integration.spec.ts`
 
 Tests cover:
+
 - CPU profiling start/stop
 - Profile analysis and bottleneck detection
 - Heap snapshot capture
@@ -287,6 +307,7 @@ DebugSession
 ```
 
 Each profiler uses the Chrome DevTools Protocol (CDP) domains:
+
 - **Profiler domain**: CPU profiling
 - **HeapProfiler domain**: Memory profiling
 - **Runtime domain**: Memory usage and performance events
@@ -301,6 +322,7 @@ Each profiler uses the Chrome DevTools Protocol (CDP) domains:
 ## Future Enhancements
 
 Potential improvements for future versions:
+
 - Flame graph visualization in HTML format
 - Heap snapshot comparison and diff
 - Real-time performance monitoring

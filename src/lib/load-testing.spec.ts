@@ -1,18 +1,18 @@
 /**
- * Load Testing Suite for MCP Debugger
+ * Load Testing Suite for MCP ACS Debugger
  * Tests system behavior under high concurrent load
  */
 
-import { DebugSession } from './debug-session';
-import { SessionManager } from './session-manager';
-import * as path from 'path';
-import * as fs from 'fs';
+import { DebugSession } from "./debug-session";
+import { SessionManager } from "./session-manager";
+import * as path from "path";
+import * as fs from "fs";
 
-describe('Load Testing', () => {
+describe("Load Testing", () => {
   let sessionManager: SessionManager;
   const testFixturePath = path.join(
     __dirname,
-    '../../test-fixtures/simple-script.js',
+    "../../test-fixtures/simple-script.js"
   );
 
   beforeAll(() => {
@@ -30,7 +30,7 @@ for (let i = 0; i < 10; i++) {
   sum += i;
 }
 console.log('Sum:', sum);
-process.exit(0);`,
+process.exit(0);`
       );
     }
   });
@@ -48,8 +48,8 @@ process.exit(0);`,
     }
   });
 
-  describe('Concurrent Session Management', () => {
-    it('should handle 10 concurrent debug sessions', async () => {
+  describe("Concurrent Session Management", () => {
+    it("should handle 10 concurrent debug sessions", async () => {
       const sessionCount = 10;
       const sessions: DebugSession[] = [];
       const startTime = Date.now();
@@ -57,7 +57,7 @@ process.exit(0);`,
       // Create sessions concurrently
       const createPromises = Array.from({ length: sessionCount }, async () => {
         const session = await sessionManager.createSession({
-          command: 'node',
+          command: "node",
           args: [testFixturePath],
           cwd: process.cwd(),
         });
@@ -76,7 +76,7 @@ process.exit(0);`,
       expect(sessionIds.size).toBe(sessionCount);
     }, 30000);
 
-    it('should handle 50 concurrent debug sessions', async () => {
+    it("should handle 50 concurrent debug sessions", async () => {
       const sessionCount = 50;
       const sessions: DebugSession[] = [];
       const startTime = Date.now();
@@ -88,13 +88,13 @@ process.exit(0);`,
           { length: Math.min(batchSize, sessionCount - i) },
           async () => {
             const session = await sessionManager.createSession({
-              command: 'node',
+              command: "node",
               args: [testFixturePath],
               cwd: process.cwd(),
             });
             sessions.push(session);
             return session;
-          },
+          }
         );
         await Promise.all(batch);
       }
@@ -109,14 +109,14 @@ process.exit(0);`,
       expect(sessionIds.size).toBe(sessionCount);
     }, 60000);
 
-    it('should measure session creation throughput', async () => {
+    it("should measure session creation throughput", async () => {
       const sessionCount = 20;
       const startTime = Date.now();
       const sessions: DebugSession[] = [];
 
       for (let i = 0; i < sessionCount; i++) {
         const session = await sessionManager.createSession({
-          command: 'node',
+          command: "node",
           args: [testFixturePath],
           cwd: process.cwd(),
         });
@@ -127,25 +127,25 @@ process.exit(0);`,
       const throughput = (sessionCount / duration) * 1000; // sessions per second
 
       console.log(
-        `Session creation throughput: ${throughput.toFixed(2)} sessions/sec`,
+        `Session creation throughput: ${throughput.toFixed(2)} sessions/sec`
       );
       console.log(
-        `Average latency: ${(duration / sessionCount).toFixed(2)}ms per session`,
+        `Average latency: ${(duration / sessionCount).toFixed(2)}ms per session`
       );
 
       expect(throughput).toBeGreaterThan(1); // At least 1 session per second
     }, 60000);
   });
 
-  describe('Resource Cleanup Under Load', () => {
-    it('should properly cleanup resources after 25 sessions', async () => {
+  describe("Resource Cleanup Under Load", () => {
+    it("should properly cleanup resources after 25 sessions", async () => {
       const sessionCount = 25;
       const sessions: DebugSession[] = [];
 
       // Create sessions
       for (let i = 0; i < sessionCount; i++) {
         const session = await sessionManager.createSession({
-          command: 'node',
+          command: "node",
           args: [testFixturePath],
           cwd: process.cwd(),
         });
@@ -157,12 +157,12 @@ process.exit(0);`,
       // Stop all sessions
       const stopStartTime = Date.now();
       await Promise.all(
-        sessions.map((session) => sessionManager.removeSession(session.id)),
+        sessions.map((session) => sessionManager.removeSession(session.id))
       );
       const stopDuration = Date.now() - stopStartTime;
 
       console.log(
-        `Cleanup duration for ${sessionCount} sessions: ${stopDuration}ms`,
+        `Cleanup duration for ${sessionCount} sessions: ${stopDuration}ms`
       );
 
       // Verify all sessions are cleaned up
@@ -170,7 +170,7 @@ process.exit(0);`,
       expect(stopDuration).toBeLessThan(15000); // Should cleanup within 15 seconds
     }, 60000);
 
-    it('should handle rapid session creation and destruction', async () => {
+    it("should handle rapid session creation and destruction", async () => {
       const cycles = 10;
       const sessionsPerCycle = 5;
 
@@ -180,7 +180,7 @@ process.exit(0);`,
         // Create sessions
         for (let i = 0; i < sessionsPerCycle; i++) {
           const session = await sessionManager.createSession({
-            command: 'node',
+            command: "node",
             args: [testFixturePath],
             cwd: process.cwd(),
           });
@@ -189,7 +189,7 @@ process.exit(0);`,
 
         // Immediately destroy them
         await Promise.all(
-          sessions.map((session) => sessionManager.removeSession(session.id)),
+          sessions.map((session) => sessionManager.removeSession(session.id))
         );
 
         expect(sessionManager.getAllSessions().length).toBe(0);
@@ -197,7 +197,7 @@ process.exit(0);`,
 
       // System should still be stable
       const finalSession = await sessionManager.createSession({
-        command: 'node',
+        command: "node",
         args: [testFixturePath],
         cwd: process.cwd(),
       });
@@ -207,11 +207,11 @@ process.exit(0);`,
     }, 60000);
   });
 
-  describe('Performance Bottleneck Identification', () => {
-    it('should measure breakpoint operation latency under load', async () => {
+  describe("Performance Bottleneck Identification", () => {
+    it("should measure breakpoint operation latency under load", async () => {
       // Test breakpoint operations through the public API
       const session = await sessionManager.createSession({
-        command: 'node',
+        command: "node",
         args: [testFixturePath],
         cwd: process.cwd(),
       });
@@ -237,14 +237,14 @@ process.exit(0);`,
       await sessionManager.removeSession(session.id);
     }, 30000);
 
-    it('should measure memory usage during concurrent sessions', async () => {
+    it("should measure memory usage during concurrent sessions", async () => {
       const initialMemory = process.memoryUsage();
       const sessionCount = 20;
       const sessions: DebugSession[] = [];
 
       for (let i = 0; i < sessionCount; i++) {
         const session = await sessionManager.createSession({
-          command: 'node',
+          command: "node",
           args: [testFixturePath],
           cwd: process.cwd(),
         });
@@ -255,7 +255,7 @@ process.exit(0);`,
 
       // Cleanup
       await Promise.all(
-        sessions.map((session) => sessionManager.removeSession(session.id)),
+        sessions.map((session) => sessionManager.removeSession(session.id))
       );
 
       const finalMemory = process.memoryUsage();
@@ -265,16 +265,16 @@ process.exit(0);`,
 
       console.log(`Memory usage stats:`);
       console.log(
-        `  Initial heap: ${(initialMemory.heapUsed / 1024 / 1024).toFixed(2)}MB`,
+        `  Initial heap: ${(initialMemory.heapUsed / 1024 / 1024).toFixed(2)}MB`
       );
       console.log(
-        `  Peak heap: ${(peakMemory.heapUsed / 1024 / 1024).toFixed(2)}MB`,
+        `  Peak heap: ${(peakMemory.heapUsed / 1024 / 1024).toFixed(2)}MB`
       );
       console.log(
-        `  Final heap: ${(finalMemory.heapUsed / 1024 / 1024).toFixed(2)}MB`,
+        `  Final heap: ${(finalMemory.heapUsed / 1024 / 1024).toFixed(2)}MB`
       );
       console.log(
-        `  Memory per session: ${(memoryPerSession / 1024 / 1024).toFixed(2)}MB`,
+        `  Memory per session: ${(memoryPerSession / 1024 / 1024).toFixed(2)}MB`
       );
 
       // Memory should be reasonable (less than 50MB per session)

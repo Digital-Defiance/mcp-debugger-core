@@ -7,7 +7,7 @@
 set +e
 
 echo "=========================================="
-echo "MCP Debugger - Enterprise Checkpoint"
+echo "MCP ACS Debugger - Enterprise Checkpoint"
 echo "=========================================="
 echo ""
 

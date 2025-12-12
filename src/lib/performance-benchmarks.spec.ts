@@ -1,5 +1,5 @@
 /**
- * Performance Benchmarks for MCP Debugger
+ * Performance Benchmarks for MCP ACS Debugger
  * Measures and tracks performance metrics for key operations
  */
 

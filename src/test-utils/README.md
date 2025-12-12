@@ -1,6 +1,6 @@
 # Test Utilities
 
-This directory contains utilities for testing the MCP Debugger Core functionality.
+This directory contains utilities for testing the MCP ACS Debugger Core functionality.
 
 ## WebSocket Mocking
 

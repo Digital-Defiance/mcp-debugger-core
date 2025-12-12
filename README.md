@@ -1,4 +1,4 @@
-# MCP Debugger Core
+# MCP ACS Debugger Core
 
 Node.js/JavaScript debugging engine using Chrome DevTools Protocol. Provides comprehensive debugging capabilities including Inspector Protocol integration, breakpoint management, variable inspection, execution control, CPU/memory profiling, hang detection, and source map support. For multi-language debugging, use the VS Code extension which leverages Debug Adapter Protocol.
 
@@ -15,6 +15,7 @@ This repository is part of the [AI Capabilitites Suite](https://github.com/Digit
 ## Features
 
 ### Core Debugging
+
 - **Node.js/JavaScript Support** - Debug Node.js applications and JavaScript code
 - **TypeScript Support** - Full TypeScript debugging with source map resolution
 - **Inspector Protocol Integration** - Full Chrome DevTools Protocol (CDP) support
@@ -25,6 +26,7 @@ This repository is part of the [AI Capabilitites Suite](https://github.com/Digit
 - **Source Map Support** - Debug transpiled code with original source locations
 
 ### Advanced Features
+
 - **Hang Detection** - Detect infinite loops and hanging processes
 - **CPU Profiling** - Profile CPU usage and identify bottlenecks
 - **Memory Profiling** - Heap snapshots and memory leak detection
@@ -32,6 +34,7 @@ This repository is part of the [AI Capabilitites Suite](https://github.com/Digit
 - **Test Framework Integration** - Debug Jest, Mocha, and Vitest tests
 
 ### Enterprise Features
+
 - **Authentication & Authorization** - Token-based auth with session management
 - **Rate Limiting** - Configurable rate limits per operation
 - **Audit Logging** - Comprehensive audit trail with structured logging
@@ -182,6 +185,7 @@ const tsLocation = await sourceMapManager.mapToOriginal({
 ### Core Classes
 
 #### DebugSession
+
 Main debugging session manager.
 
 ```typescript
@@ -223,6 +227,7 @@ class DebugSession {
 ```
 
 #### InspectorClient
+
 Chrome DevTools Protocol client.
 
 ```typescript
@@ -237,6 +242,7 @@ class InspectorClient {
 ```
 
 #### BreakpointManager
+
 Manages breakpoints across sessions.
 
 ```typescript
@@ -250,6 +256,7 @@ class BreakpointManager {
 ```
 
 #### HangDetector
+
 Detects hanging processes and infinite loops.
 
 ```typescript
@@ -267,6 +274,7 @@ interface HangDetectionOptions {
 ```
 
 #### CPUProfiler
+
 CPU profiling and performance analysis.
 
 ```typescript
@@ -280,6 +288,7 @@ class CPUProfiler {
 ```
 
 #### MemoryProfiler
+
 Memory profiling and leak detection.
 
 ```typescript
@@ -295,6 +304,7 @@ class MemoryProfiler {
 ### Enterprise Features
 
 #### AuthManager
+
 Authentication and authorization.
 
 ```typescript
@@ -306,6 +316,7 @@ class AuthManager {
 ```
 
 #### RateLimiter
+
 Rate limiting for operations.
 
 ```typescript
@@ -319,6 +330,7 @@ class RateLimiter {
 ```
 
 #### AuditLogger
+
 Comprehensive audit logging.
 
 ```typescript
@@ -330,6 +342,7 @@ class AuditLogger {
 ```
 
 #### DataMasker
+
 PII detection and masking.
 
 ```typescript
@@ -341,6 +354,7 @@ class DataMasker {
 ```
 
 #### MetricsCollector
+
 Metrics collection and reporting.
 
 ```typescript
@@ -411,7 +425,7 @@ npm run test:profiling     # Profiling tests only
 └──────────────┬──────────────────────────┘
                │
 ┌──────────────▼──────────────────────────┐
-│      MCP Debugger Core Library          │
+│      MCP ACS Debugger Core Library          │
 ├─────────────────────────────────────────┤
 │  DebugSession  │  SessionManager        │
 │  Breakpoints   │  Variable Inspector    │
@@ -437,18 +451,23 @@ npm run test:profiling     # Profiling tests only
 ## Use Cases
 
 ### 1. Building Debugging Tools
+
 Use the core library to build custom debugging tools, IDEs, or CLI debuggers.
 
 ### 2. Automated Testing
+
 Integrate debugging capabilities into your test infrastructure for better test failure analysis.
 
 ### 3. Production Debugging
+
 Use in production environments with enterprise features like auth, rate limiting, and audit logging.
 
 ### 4. Performance Analysis
+
 Profile CPU and memory usage to identify bottlenecks and optimize performance.
 
 ### 5. AI Agent Integration
+
 Power AI agents with debugging capabilities through the MCP server (see [@ai-capabilities-suite/mcp-debugger-server](https://www.npmjs.com/package/@ai-capabilities-suite/mcp-debugger-server)).
 
 ## Examples
@@ -567,16 +586,18 @@ MIT License - See [LICENSE](./LICENSE) file for details.
 
 - **GitHub Issues**: [ai-capabilities-suite/issues](https://github.com/digital-defiance/ai-capabilities-suite/issues)
 - **NPM Package**: [@ai-capabilities-suite/mcp-debugger-core](https://www.npmjs.com/package/@ai-capabilities-suite/mcp-debugger-core)
-- **Email**: info@digitaldefiance.org
+- **Email**: <info@digitaldefiance.org>
 
 ## Changelog
 
 ### Version 1.0.1
+
 - Improved README documentation
 - Added comprehensive API reference
 - Added usage examples
 
 ### Version 1.0.0
+
 - Initial release
 - Core debugging engine with Inspector Protocol integration
 - Breakpoint management and execution control
