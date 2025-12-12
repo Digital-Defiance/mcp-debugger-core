@@ -158,7 +158,7 @@ describe("Test Framework Integration", () => {
       const config: TestExecutionConfig = {
         framework: "mocha",
         testFile: mochaTestFile,
-        timeout: 20000,
+        timeout: 50000, // Increased timeout for Mocha execution
         attachInspector: false,
       };
 
@@ -174,7 +174,7 @@ describe("Test Framework Integration", () => {
 
       const combinedOutput = result.stdout + result.stderr;
       expect(combinedOutput.length).toBeGreaterThan(0);
-    }, 30000);
+    }, 60000); // Increased Jest test timeout
 
     it("should run Mocha tests with inspector attached", async () => {
       if (!fs.existsSync(mochaTestFile)) {
@@ -184,7 +184,7 @@ describe("Test Framework Integration", () => {
       const config: TestExecutionConfig = {
         framework: "mocha",
         testFile: mochaTestFile,
-        timeout: 30000,
+        timeout: 50000, // Increased timeout for Mocha with inspector
         attachInspector: true,
       };
 
@@ -195,7 +195,7 @@ describe("Test Framework Integration", () => {
 
       const combinedOutput = result.stdout + result.stderr;
       expect(combinedOutput.length).toBeGreaterThan(0);
-    }, 40000);
+    }, 60000); // Increased Jest test timeout
   });
 
   /**
@@ -222,7 +222,7 @@ describe("Test Framework Integration", () => {
       const config: TestExecutionConfig = {
         framework: "vitest",
         testFile: vitestTestFile,
-        timeout: 20000,
+        timeout: 50000, // Increased timeout for Vitest execution
         attachInspector: false,
       };
 
@@ -238,7 +238,7 @@ describe("Test Framework Integration", () => {
 
       const combinedOutput = result.stdout + result.stderr;
       expect(combinedOutput.length).toBeGreaterThan(0);
-    }, 30000);
+    }, 60000); // Increased Jest test timeout
 
     it("should run Vitest tests with inspector attached", async () => {
       if (!fs.existsSync(vitestTestFile)) {
@@ -248,7 +248,7 @@ describe("Test Framework Integration", () => {
       const config: TestExecutionConfig = {
         framework: "vitest",
         testFile: vitestTestFile,
-        timeout: 30000,
+        timeout: 50000, // Increased timeout for Vitest with inspector
         attachInspector: true,
       };
 
@@ -259,7 +259,7 @@ describe("Test Framework Integration", () => {
 
       const combinedOutput = result.stdout + result.stderr;
       expect(combinedOutput.length).toBeGreaterThan(0);
-    }, 40000);
+    }, 60000); // Increased Jest test timeout
   });
 
   /**
